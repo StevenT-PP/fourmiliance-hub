@@ -8,6 +8,7 @@ import type { Contact } from '../../types'
 import type { PipelineStage } from '../../lib/constants'
 import { SERVICE_LABELS } from '../../lib/constants'
 import { formatCurrency, getInitials } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 const COLUMNS: { key: PipelineStage; label: string }[] = [
   { key: 'prospect', label: 'Prospect'     },
@@ -25,6 +26,7 @@ interface Props {
 export default function KanbanBoard({ contacts }: Props) {
   const queryClient            = useQueryClient()
   const { user }               = useAuth()
+  const { show: showToast }    = useToast()
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null)
   const [draggingId,    setDraggingId]    = useState<string | null>(null)
 
@@ -56,6 +58,9 @@ export default function KanbanBoard({ contacts }: Props) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['contacts'] })
+    },
+    onError: () => {
+      showToast('Erreur lors du déplacement du contact', 'error')
     },
   })
 

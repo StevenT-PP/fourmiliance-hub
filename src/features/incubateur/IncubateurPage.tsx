@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
 import type { IncubatedCompany, IncubatedStage } from '../../types'
 import { formatDate } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -185,8 +186,12 @@ function CompanyModal({
   onClose: () => void
   onRefresh: () => void
 }) {
+  const { show: showToast } = useToast()
+
   async function updateStage(stage: IncubatedStage) {
-    await supabase.from('incubated_companies').update({ stage }).eq('id', company.id)
+    const { error } = await supabase.from('incubated_companies').update({ stage }).eq('id', company.id)
+    if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
+    showToast(`Stade mis à jour : ${STAGE_LABELS[stage]}`)
     onRefresh()
   }
 
@@ -290,6 +295,7 @@ function CompanyCreateModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { show: showToast } = useToast()
   const [form, setForm] = useState({
     name:         '',
     sector:       '',
@@ -306,7 +312,7 @@ function CompanyCreateModal({
     e.preventDefault()
     if (!form.name.trim()) return
     setSaving(true)
-    await supabase.from('incubated_companies').insert({
+    const { error } = await supabase.from('incubated_companies').insert({
       name:         form.name.trim(),
       sector:       form.sector       || null,
       contact_name: form.contact_name || null,
@@ -318,6 +324,8 @@ function CompanyCreateModal({
       user_id:      userId,
     })
     setSaving(false)
+    if (error) { showToast('Erreur lors de la création', 'error'); return }
+    showToast(`Entreprise créée : ${form.name.trim()}`)
     onSaved()
   }
 
@@ -366,6 +374,7 @@ function CompanyCreateModal({
               <label htmlFor="ic-contact" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Contact</label>
               <input id="ic-contact" value={form.contact_name}
                 onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
+                placeholder="Prénom Nom"
                 className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
             </div>
@@ -373,6 +382,27 @@ function CompanyCreateModal({
               <label htmlFor="ic-start-date" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date d'entrée</label>
               <input id="ic-start-date" type="date" value={form.start_date}
                 onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="ic-email" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Email</label>
+              <input id="ic-email" type="email" value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="contact@exemple.fr"
+                autoComplete="email"
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
+            </div>
+            <div>
+              <label htmlFor="ic-phone" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Téléphone</label>
+              <input id="ic-phone" type="tel" value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="06 12 34 56 78"
+                autoComplete="tel"
                 className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
             </div>

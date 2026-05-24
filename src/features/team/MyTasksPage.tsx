@@ -12,6 +12,7 @@ import {
   TASK_PRIORITIES,
 } from '../../lib/constants'
 import { formatDate } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 type FilterStatus   = 'all' | TaskStatus
 type FilterPriority = 'all' | TaskPriority
@@ -23,6 +24,7 @@ interface TaskWithProject extends Task {
 export default function MyTasksPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { show: showToast } = useToast()
   const [filter, setFilter]         = useState<FilterStatus>('all')
   const [filterPriority, setFilterPriority] = useState<FilterPriority>('all')
   const [filterProject, setFilterProject]   = useState<string>('all')
@@ -59,7 +61,8 @@ export default function MyTasksPage() {
   })
 
   async function updateStatus(taskId: string, newStatus: TaskStatus) {
-    await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId)
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId)
+    if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
     if (user) {
       await supabase.from('activity_log').insert({
         user_id:      user.id,

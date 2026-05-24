@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import type { Contact, Profile } from '../../types'
 import type { PipelineStage, ServiceType } from '../../lib/constants'
 import { PIPELINE_LABELS, PIPELINE_STAGES, SERVICE_LABELS } from '../../lib/constants'
+import { useToast } from '../../hooks/useToast'
 
 interface Props {
   contact?:  Contact
@@ -44,6 +45,7 @@ const EMPTY: FormData = {
 
 export default function ContactForm({ contact, onClose, onSuccess }: Props) {
   const isEditing = !!contact
+  const { show: showToast } = useToast()
 
   const [form,    setForm]    = useState<FormData>(EMPTY)
   const [errors,  setErrors]  = useState<Partial<Record<keyof FormData, string>>>({})
@@ -128,6 +130,7 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
     if (error) {
       setSubmitError(error.message ?? 'Erreur lors de la sauvegarde.')
     } else {
+      showToast(isEditing ? 'Contact modifié' : `Contact créé : ${form.company.trim()}`)
       onSuccess()
     }
   }

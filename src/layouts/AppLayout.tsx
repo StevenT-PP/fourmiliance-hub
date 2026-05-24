@@ -38,8 +38,9 @@ const adminNav: NavSection[] = [
   {
     section: 'COMPTE',
     items: [
-      { label: 'Équipe',       path: '/app/team',     icon: UserCog },
-      { label: 'Paramètres',   path: '/app/settings', icon: Settings },
+      { label: 'Équipe',       path: '/app/team',       icon: UserCog },
+      { label: 'Mes tâches',   path: '/app/mes-taches', icon: Clock },
+      { label: 'Paramètres',   path: '/app/settings',   icon: Settings },
     ],
   },
 ]

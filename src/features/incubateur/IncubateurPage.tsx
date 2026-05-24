@@ -196,8 +196,8 @@ function CompanyModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div role="dialog" aria-modal="true" aria-labelledby="company-detail-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="company-detail-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
           <h3 id="company-detail-title" className="font-heading text-lg text-fourmiliance-forest">{company.name}</h3>
           <button onClick={onClose} aria-label="Fermer" className="p-2 rounded-lg text-fourmiliance-ghost hover:text-fourmiliance-ink hover:bg-fourmiliance-cream-dark transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid">
@@ -330,8 +330,8 @@ function CompanyCreateModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div role="dialog" aria-modal="true" aria-labelledby="company-create-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="company-create-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
           <h3 id="company-create-title" className="font-heading text-base text-fourmiliance-forest">Nouvelle entreprise</h3>
           <button onClick={onClose} aria-label="Fermer" className="p-2 rounded-lg text-fourmiliance-ghost hover:text-fourmiliance-ink hover:bg-fourmiliance-cream-dark transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid">

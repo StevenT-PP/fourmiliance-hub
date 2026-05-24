@@ -68,6 +68,15 @@ export default function ProjectsPage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!showModal) return
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowModal(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [showModal])
+
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
@@ -215,12 +224,13 @@ export default function ProjectsPage() {
 
       {/* Modal création */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="new-project-title"
             className="bg-white rounded-xl shadow-xl w-full max-w-md"
+            onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
               <h2 id="new-project-title" className="font-heading text-lg text-fourmiliance-forest">Nouveau projet</h2>

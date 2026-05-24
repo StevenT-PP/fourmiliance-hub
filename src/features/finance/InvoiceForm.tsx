@@ -62,14 +62,20 @@ async function generateNumber(type: 'devis' | 'facture'): Promise<string> {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface InvoiceFormProps {
-  onClose:   () => void
-  onSuccess: () => void
+  onClose:          () => void
+  onSuccess:        () => void
+  initialProjectId?: string
+  initialContactId?: string
 }
 
-export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
+export default function InvoiceForm({ onClose, onSuccess, initialProjectId, initialContactId }: InvoiceFormProps) {
   const { user }   = useAuth()
   const qc         = useQueryClient()
-  const [form, setForm]     = useState<FormState>(DEFAULT)
+  const [form, setForm]     = useState<FormState>({
+    ...DEFAULT,
+    ...(initialProjectId ? { project_id: initialProjectId } : {}),
+    ...(initialContactId ? { contact_id: initialContactId } : {}),
+  })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
 

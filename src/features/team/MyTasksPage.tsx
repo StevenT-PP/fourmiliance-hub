@@ -1,19 +1,20 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Circle, Play, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Circle, Play, ArrowRight, Filter } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
 import type { Task } from '../../types'
-import type { TaskStatus } from '../../lib/constants'
+import type { TaskStatus, TaskPriority } from '../../lib/constants'
 import {
-  TASK_STATUS_LABELS,
   TASK_PRIORITY_COLORS,
   TASK_PRIORITY_LABELS,
+  TASK_PRIORITIES,
 } from '../../lib/constants'
 import { formatDate } from '../../lib/utils'
 
-type FilterStatus = 'all' | TaskStatus
+type FilterStatus   = 'all' | TaskStatus
+type FilterPriority = 'all' | TaskPriority
 
 interface TaskWithProject extends Task {
   project: { id: string; name: string } | null
@@ -22,7 +23,9 @@ interface TaskWithProject extends Task {
 export default function MyTasksPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [filter, setFilter] = useState<FilterStatus>('all')
+  const [filter, setFilter]         = useState<FilterStatus>('all')
+  const [filterPriority, setFilterPriority] = useState<FilterPriority>('all')
+  const [filterProject, setFilterProject]   = useState<string>('all')
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ['my-tasks', user?.id],
@@ -39,9 +42,21 @@ export default function MyTasksPage() {
     enabled: !!user,
   })
 
-  const filtered = filter === 'all'
-    ? tasks
-    : tasks.filter(t => t.status === filter)
+  // Projets uniques présents dans les tâches
+  const projectOptions = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const t of tasks) {
+      if (t.project) map.set(t.project.id, t.project.name)
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
+  }, [tasks])
+
+  const filtered = tasks.filter(t => {
+    if (filter !== 'all' && t.status !== filter) return false
+    if (filterPriority !== 'all' && t.priority !== filterPriority) return false
+    if (filterProject !== 'all' && t.project?.id !== filterProject) return false
+    return true
+  })
 
   async function updateStatus(taskId: string, newStatus: TaskStatus) {
     await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId)
@@ -84,30 +99,91 @@ export default function MyTasksPage() {
     <div className="space-y-4">
 
       {/* ── Filtres ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par statut">
-        {filters.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            aria-pressed={filter === f.key}
-            className={`text-xs px-3 py-1.5 rounded-full border transition-colors
-              ${filter === f.key
-                ? 'bg-fourmiliance-forest text-white border-fourmiliance-forest'
-                : 'border-fourmiliance-border text-fourmiliance-tertiary hover:border-fourmiliance-mid hover:text-fourmiliance-mid'
-              }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="flex flex-col gap-3">
+        {/* Filtre statut */}
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par statut">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              aria-pressed={filter === f.key}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors
+                ${filter === f.key
+                  ? 'bg-fourmiliance-forest text-white border-fourmiliance-forest'
+                  : 'border-fourmiliance-border text-fourmiliance-tertiary hover:border-fourmiliance-mid hover:text-fourmiliance-mid'
+                }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filtres avancés : priorité + projet */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Filter className="w-3.5 h-3.5 text-fourmiliance-ghost" aria-hidden="true" />
+          {/* Priorité */}
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrer par priorité">
+            <button
+              onClick={() => setFilterPriority('all')}
+              aria-pressed={filterPriority === 'all'}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors
+                ${filterPriority === 'all'
+                  ? 'bg-fourmiliance-mid text-white border-fourmiliance-mid'
+                  : 'border-fourmiliance-border text-fourmiliance-ghost hover:border-fourmiliance-mid'
+                }`}
+            >
+              Toutes priorités
+            </button>
+            {TASK_PRIORITIES.map(p => (
+              <button
+                key={p}
+                onClick={() => setFilterPriority(p)}
+                aria-pressed={filterPriority === p}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors
+                  ${filterPriority === p
+                    ? 'bg-fourmiliance-mid text-white border-fourmiliance-mid'
+                    : 'border-fourmiliance-border text-fourmiliance-ghost hover:border-fourmiliance-mid'
+                  }`}
+              >
+                {TASK_PRIORITY_LABELS[p]}
+              </button>
+            ))}
+          </div>
+
+          {/* Projet */}
+          {projectOptions.length > 0 && (
+            <select
+              value={filterProject}
+              onChange={e => setFilterProject(e.target.value)}
+              aria-label="Filtrer par projet"
+              className="border border-fourmiliance-border rounded-full px-3 py-1 text-xs text-fourmiliance-tertiary bg-white focus:outline-none focus:border-fourmiliance-mid"
+            >
+              <option value="all">Tous les projets</option>
+              {projectOptions.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+
+          {/* Reset si filtres actifs */}
+          {(filterPriority !== 'all' || filterProject !== 'all') && (
+            <button
+              onClick={() => { setFilterPriority('all'); setFilterProject('all') }}
+              className="text-xs text-fourmiliance-rust hover:underline"
+            >
+              Réinitialiser
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Liste des tâches ─────────────────────────────────────────────── */}
       {sorted.length === 0 ? (
         <div className="bg-white rounded-xl border border-fourmiliance-border p-12 text-center">
           <p className="text-sm text-fourmiliance-ghost">
-            {filter === 'all'
+            {filter === 'all' && filterPriority === 'all' && filterProject === 'all'
               ? 'Aucune tâche assignée pour le moment.'
-              : `Aucune tâche en statut "${TASK_STATUS_LABELS[filter as TaskStatus]}".`}
+              : 'Aucune tâche ne correspond aux filtres sélectionnés.'}
           </p>
         </div>
       ) : (

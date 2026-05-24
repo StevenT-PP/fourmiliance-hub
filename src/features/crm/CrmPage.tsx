@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, LayoutGrid, List, Search, Users } from 'lucide-react'
+import { Plus, LayoutGrid, List, Search, Users, FileDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Profile } from '../../types'
 import type { PipelineStage, ServiceType } from '../../lib/constants'
@@ -12,6 +12,30 @@ import {
   SERVICE_LABELS,
 } from '../../lib/constants'
 import { formatCurrency } from '../../lib/utils'
+
+function exportContactsCSV(contacts: Contact[]) {
+  const headers = ['Entreprise', 'Contact', 'Email', 'Téléphone', 'Service', 'Étape pipeline', 'Valeur estimée (€)', 'Assigné à']
+  const rows = contacts.map(c => [
+    c.company,
+    c.contact_name,
+    c.email ?? '',
+    c.phone ?? '',
+    c.service_type ? SERVICE_LABELS[c.service_type]?.label ?? c.service_type : '',
+    PIPELINE_LABELS[c.pipeline_stage] ?? c.pipeline_stage,
+    c.estimated_value != null ? String(c.estimated_value) : '',
+    c.assignee?.full_name ?? '',
+  ])
+  const csv = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `contacts-fourmiliance-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 import KanbanBoard from './KanbanBoard'
 import ContactForm from './ContactForm'
 
@@ -173,6 +197,17 @@ export default function CrmPage() {
             <List size={15} aria-hidden="true" />
           </button>
         </div>
+
+        {contacts.length > 0 && (
+          <button
+            onClick={() => exportContactsCSV(contacts)}
+            aria-label="Exporter les contacts en CSV"
+            className="flex items-center gap-1.5 border border-fourmiliance-border bg-white text-fourmiliance-tertiary px-3 py-2 rounded-lg text-sm hover:bg-fourmiliance-cream hover:text-fourmiliance-ink transition-colors min-h-[44px]"
+          >
+            <FileDown size={14} aria-hidden="true" />
+            CSV
+          </button>
+        )}
 
         <button
           onClick={openCreate}

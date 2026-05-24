@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft, Copy, Check, CheckCircle2, Circle, ChevronDown, ChevronRight,
-  Plus, Download, Pencil, ExternalLink,
+  Plus, Download, Pencil, ExternalLink, FileText,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import type { Task, Deliverable, Profile } from '../../types'
-import type { ProjectStatus, TaskStatus, TaskPriority } from '../../lib/constants'
+import type { Task, Deliverable, Profile, Invoice, Contact } from '../../types'
+import type { ProjectStatus, TaskStatus, TaskPriority, InvoiceStatus } from '../../lib/constants'
 import {
   SERVICE_LABELS,
   PROJECT_STATUS_LABELS,
@@ -16,8 +16,11 @@ import {
   TASK_PRIORITY_COLORS,
   SERVICE_TYPES,
   PROJECT_STATUSES,
+  INVOICE_STATUS_LABELS,
+  INVOICE_STATUS_COLORS,
 } from '../../lib/constants'
 import { formatCurrency, formatDate, getInitials } from '../../lib/utils'
+import InvoiceForm from '../finance/InvoiceForm'
 
 // ─── Types locaux ───────────────────────────────────────────────────────────
 
@@ -79,6 +82,7 @@ export default function ProjectDetail() {
   const [copiedLink, setCopiedLink]       = useState(false)
   const [editHeader, setEditHeader]       = useState(false)
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false)
 
   // ── Fetch project ──
   const { data: project, isLoading: loadingProject } = useQuery({
@@ -121,6 +125,24 @@ export default function ProjectDetail() {
         .order('created_at')
       if (error) throw error
       return (data ?? []) as Deliverable[]
+    },
+    enabled: !!id,
+  })
+
+  // ── Fetch invoices ──
+  interface InvoiceRow extends Invoice {
+    contact: Pick<Contact, 'id' | 'company' | 'contact_name'> | null
+  }
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['invoices', 'project', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*, contact:contact_id(id, company, contact_name)')
+        .eq('project_id', id!)
+        .order('issued_date', { ascending: false })
+      if (error) throw error
+      return (data ?? []) as InvoiceRow[]
     },
     enabled: !!id,
   })
@@ -386,7 +408,30 @@ export default function ProjectDetail() {
           deliverables={deliverables}
           onRefresh={() => queryClient.invalidateQueries({ queryKey: ['deliverables', id] })}
         />
+
+        {/* ── Factures liées ── */}
+        <ProjectInvoiceSection
+          invoices={invoices}
+          projectId={id!}
+          contactId={project.contact_id ?? undefined}
+          onNewInvoice={() => setShowInvoiceForm(true)}
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ['invoices', 'project', id] })}
+        />
       </div>
+
+      {/* ── Modal nouvelle facture ── */}
+      {showInvoiceForm && (
+        <InvoiceForm
+          initialProjectId={id}
+          initialContactId={project.contact_id ?? undefined}
+          onClose={() => setShowInvoiceForm(false)}
+          onSuccess={() => {
+            setShowInvoiceForm(false)
+            queryClient.invalidateQueries({ queryKey: ['invoices', 'project', id] })
+            queryClient.invalidateQueries({ queryKey: ['invoices'] })
+          }}
+        />
+      )}
 
       {/* ── Side panel tâche ── */}
       {selectedTask && (
@@ -805,6 +850,168 @@ function DeliverableSection({
             )
           })}
         </div>
+      )}
+    </div>
+  )
+}
+
+// ─── ProjectInvoiceSection ───────────────────────────────────────────────────
+
+interface InvoiceRowLocal {
+  id: string
+  number: string
+  type: 'devis' | 'facture'
+  status: string
+  amount_ht: number
+  amount_ttc: number
+  issued_date: string
+  due_date: string | null
+  contact: { id: string; company: string; contact_name: string } | null
+  line_items: { description: string; quantity: number; unit_price: number; total: number; id: string; invoice_id: string }[]
+  tva_rate: number
+  paid_date: string | null
+  notes: string | null
+  contact_id: string | null
+  project_id: string | null
+  created_at: string
+}
+
+async function downloadInvoicePDF(inv: InvoiceRowLocal) {
+  const [{ pdf }, { default: InvoicePDF }] = await Promise.all([
+    import('@react-pdf/renderer'),
+    import('../finance/InvoicePDF'),
+  ])
+  const blob = await pdf(<InvoicePDF invoice={inv as Parameters<typeof InvoicePDF>[0]['invoice']} />).toBlob()
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = `${inv.number}.pdf`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function ProjectInvoiceSection({
+  invoices,
+  projectId: _projectId,
+  contactId: _contactId,
+  onNewInvoice,
+  onRefresh: _onRefresh,
+}: {
+  invoices: InvoiceRowLocal[]
+  projectId: string
+  contactId?: string
+  onNewInvoice: () => void
+  onRefresh: () => void
+}) {
+  const [pdfLoading, setPdfLoading] = useState<string | null>(null)
+
+  const totalHT  = invoices.filter(i => i.type === 'facture').reduce((s, i) => s + (i.amount_ht ?? 0), 0)
+  const totalTTC = invoices.filter(i => i.type === 'facture').reduce((s, i) => s + (i.amount_ttc ?? 0), 0)
+
+  function effectiveStatus(inv: InvoiceRowLocal): InvoiceStatus {
+    const isLate =
+      (inv.status === 'en_attente' || inv.status === 'envoye') &&
+      inv.due_date != null &&
+      inv.due_date < new Date().toISOString().slice(0, 10)
+    return isLate ? 'en_retard' : (inv.status as InvoiceStatus)
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-fourmiliance-border p-6 mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-heading text-base text-fourmiliance-forest flex items-center gap-2">
+          <FileText className="w-4 h-4" aria-hidden="true" />
+          Factures liées
+          {invoices.length > 0 && (
+            <span className="text-sm font-normal text-fourmiliance-ghost ml-1">({invoices.length})</span>
+          )}
+        </h2>
+        <button
+          onClick={onNewInvoice}
+          className="flex items-center gap-1.5 text-sm bg-fourmiliance-mid text-white px-3 py-1.5 rounded-lg hover:bg-fourmiliance-light transition-colors"
+        >
+          <Plus className="w-4 h-4" aria-hidden="true" />
+          Nouvelle facture
+        </button>
+      </div>
+
+      {invoices.length === 0 ? (
+        <p className="text-sm text-fourmiliance-ghost">Aucune facture liée à ce projet.</p>
+      ) : (
+        <>
+          {/* KPI row */}
+          {totalHT > 0 && (
+            <div className="flex gap-6 mb-4 p-3 bg-fourmiliance-surface rounded-lg">
+              <div>
+                <p className="text-xs text-fourmiliance-ghost">Total HT (factures)</p>
+                <p className="text-sm font-semibold text-fourmiliance-forest">{formatCurrency(totalHT)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-fourmiliance-ghost">Total TTC (factures)</p>
+                <p className="text-sm font-semibold text-fourmiliance-forest">{formatCurrency(totalTTC)}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Table */}
+          <div className="overflow-x-auto -mx-2">
+            <table className="w-full text-sm min-w-[520px]">
+              <thead>
+                <tr className="text-left border-b border-fourmiliance-border">
+                  {['N°', 'Type', 'Émis le', 'TTC', 'Statut', ''].map(h => (
+                    <th key={h} className="pb-2 px-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide last:text-right">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-fourmiliance-track">
+                {invoices.map(inv => {
+                  const eff = effectiveStatus(inv)
+                  return (
+                    <tr key={inv.id} className="hover:bg-fourmiliance-surface">
+                      <td className="px-2 py-2.5 font-mono text-xs text-fourmiliance-tertiary whitespace-nowrap">
+                        {inv.number}
+                      </td>
+                      <td className="px-2 py-2.5">
+                        <span className={`badge ${inv.type === 'devis' ? 'badge-warm' : 'badge-pine'}`}>
+                          {inv.type === 'devis' ? 'Devis' : 'Facture'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2.5 text-fourmiliance-muted text-xs whitespace-nowrap">
+                        {inv.issued_date ? formatDate(inv.issued_date) : '—'}
+                      </td>
+                      <td className="px-2 py-2.5 font-semibold text-fourmiliance-body whitespace-nowrap">
+                        {formatCurrency(inv.amount_ttc ?? 0)}
+                      </td>
+                      <td className="px-2 py-2.5">
+                        <span className={`badge ${eff === 'en_retard' ? 'badge-rust' : (INVOICE_STATUS_COLORS[inv.status as InvoiceStatus] ?? 'badge-neutral')}`}>
+                          {INVOICE_STATUS_LABELS[eff]}
+                        </span>
+                      </td>
+                      <td className="px-2 py-2.5 text-right">
+                        <button
+                          aria-label={pdfLoading === inv.id ? 'Génération PDF…' : `Télécharger ${inv.number}`}
+                          disabled={pdfLoading === inv.id}
+                          onClick={async () => {
+                            setPdfLoading(inv.id)
+                            try { await downloadInvoicePDF(inv) } finally { setPdfLoading(null) }
+                          }}
+                          className="p-1.5 rounded hover:bg-fourmiliance-track text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors disabled:opacity-50"
+                        >
+                          {pdfLoading === inv.id
+                            ? <span className="w-4 h-4 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin inline-block" role="status" aria-hidden="true" />
+                            : <Download className="w-4 h-4" aria-hidden="true" />
+                          }
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, LayoutGrid, List, Search } from 'lucide-react'
+import { Plus, LayoutGrid, List, Search, Users } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Profile } from '../../types'
 import type { PipelineStage, ServiceType } from '../../lib/constants'
@@ -144,28 +144,30 @@ export default function CrmPage() {
         )}
 
         {/* Toggle Kanban / Liste */}
-        <div className="flex items-center gap-1 bg-white border border-[#E4DDD4] rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white border border-[#E4DDD4] rounded-lg p-1" role="group" aria-label="Mode d'affichage">
           <button
             onClick={() => switchView('kanban')}
-            title="Vue Kanban"
-            className={`p-1.5 rounded transition-colors ${
+            aria-label="Vue Kanban"
+            aria-pressed={view === 'kanban'}
+            className={`p-2 rounded transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
               view === 'kanban'
                 ? 'bg-fourmiliance-cream-dark text-[#1A1A1A]'
                 : 'text-[#9A9A9A] hover:text-[#5A5A5A]'
             }`}
           >
-            <LayoutGrid size={15} />
+            <LayoutGrid size={15} aria-hidden="true" />
           </button>
           <button
             onClick={() => switchView('liste')}
-            title="Vue liste"
-            className={`p-1.5 rounded transition-colors ${
+            aria-label="Vue liste"
+            aria-pressed={view === 'liste'}
+            className={`p-2 rounded transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
               view === 'liste'
                 ? 'bg-fourmiliance-cream-dark text-[#1A1A1A]'
                 : 'text-[#9A9A9A] hover:text-[#5A5A5A]'
             }`}
           >
-            <List size={15} />
+            <List size={15} aria-hidden="true" />
           </button>
         </div>
 
@@ -240,8 +242,11 @@ function ListeContacts({
           <tbody>
             {contacts.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-10 text-sm text-[#9A9A9A]">
-                  Aucun contact trouvé
+                <td colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2">
+                    <Users className="w-8 h-8 text-[#C0B8B0]" aria-hidden="true" />
+                    <p className="text-sm text-[#9A9A9A]">Aucun contact trouvé</p>
+                  </div>
                 </td>
               </tr>
             )}

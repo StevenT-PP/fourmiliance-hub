@@ -228,6 +228,9 @@ ALTER TABLE invoices             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fund_transactions    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE incubated_companies  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_log         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoice_line_items   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE association_members  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE association_events   ENABLE ROW LEVEL SECURITY;
 
 -- Helper : rôle de l'utilisateur connecté
 CREATE OR REPLACE FUNCTION get_my_role()
@@ -258,9 +261,39 @@ CREATE POLICY "projects_contractor_select" ON projects FOR SELECT
     EXISTS (SELECT 1 FROM tasks WHERE tasks.project_id = projects.id AND tasks.assigned_to = auth.uid())
   );
 
+-- CONTACT_NOTES
+CREATE POLICY "contact_notes_admin" ON contact_notes FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "contact_notes_author" ON contact_notes FOR SELECT USING (author_id = auth.uid());
+CREATE POLICY "contact_notes_insert" ON contact_notes FOR INSERT WITH CHECK (author_id = auth.uid());
+
+-- CONTACT_TASKS
+CREATE POLICY "contact_tasks_admin" ON contact_tasks FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "contact_tasks_assignee" ON contact_tasks FOR SELECT USING (assigned_to = auth.uid());
+
+-- DELIVERABLES
+CREATE POLICY "deliverables_admin" ON deliverables FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "deliverables_contractor_select" ON deliverables FOR SELECT
+  USING (
+    get_my_role() = 'sous_traitant' AND
+    EXISTS (SELECT 1 FROM tasks WHERE tasks.project_id = deliverables.project_id AND tasks.assigned_to = auth.uid())
+  );
+CREATE POLICY "deliverables_client_select" ON deliverables FOR SELECT
+  USING (
+    get_my_role() = 'client' AND
+    EXISTS (SELECT 1 FROM projects WHERE projects.id = deliverables.project_id AND projects.client_id = auth.uid())
+  );
+
+-- ACTIVITY_LOG
+CREATE POLICY "activity_admin" ON activity_log FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "activity_insert" ON activity_log FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "activity_own" ON activity_log FOR SELECT USING (user_id = auth.uid());
+
 -- TASKS
 CREATE POLICY "tasks_admin" ON tasks FOR ALL USING (get_my_role() = 'admin');
-CREATE POLICY "tasks_assignee" ON tasks FOR SELECT USING (assigned_to = auth.uid());
+CREATE POLICY "tasks_assignee_select" ON tasks FOR SELECT USING (assigned_to = auth.uid());
+CREATE POLICY "tasks_assignee_update" ON tasks FOR UPDATE
+  USING (assigned_to = auth.uid() AND get_my_role() = 'sous_traitant')
+  WITH CHECK (assigned_to = auth.uid());
 CREATE POLICY "tasks_client_select" ON tasks FOR SELECT
   USING (
     get_my_role() = 'client' AND
@@ -283,6 +316,13 @@ CREATE POLICY "messages_insert" ON messages FOR INSERT
 -- FINANCES
 CREATE POLICY "invoices_admin" ON invoices FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "fund_admin" ON fund_transactions FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "invoice_line_items_admin" ON invoice_line_items FOR ALL USING (get_my_role() = 'admin');
+
+-- ASSOCIATION
+CREATE POLICY "assoc_members_admin" ON association_members FOR ALL USING (get_my_role() = 'admin');
+CREATE POLICY "assoc_members_self" ON association_members FOR SELECT USING (get_my_role() = 'membre_association');
+CREATE POLICY "assoc_events_read" ON association_events FOR SELECT USING (get_my_role() IN ('admin','membre_association'));
+CREATE POLICY "assoc_events_admin" ON association_events FOR ALL USING (get_my_role() = 'admin');
 
 -- INCUBATEUR
 CREATE POLICY "incube_admin" ON incubated_companies FOR ALL USING (get_my_role() = 'admin');

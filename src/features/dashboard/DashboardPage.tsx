@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
   Users, FolderKanban, TrendingUp, Activity,
-  ArrowRight,
+  ArrowRight, User, FolderOpen, Receipt, CheckSquare, Pin,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
@@ -35,14 +35,28 @@ interface InvoiceSummary {
 
 const PIPELINE_ORDER = ['prospect', 'contacte', 'devis', 'signe', 'en_cours', 'livre']
 
-function activityIcon(entityType: string | null): string {
+function ActivityIcon({ entityType }: { entityType: string | null }) {
+  const cls = 'w-4 h-4 flex-shrink-0'
   switch (entityType) {
-    case 'contact': return '👤'
-    case 'project': return '📁'
-    case 'invoice': return '🧾'
-    case 'task':    return '✅'
-    default:        return '📌'
+    case 'contact': return <User    className={`${cls} text-fourmiliance-mid`} />
+    case 'project': return <FolderOpen className={`${cls} text-sky-500`} />
+    case 'invoice': return <Receipt className={`${cls} text-amber-500`} />
+    case 'task':    return <CheckSquare className={`${cls} text-emerald-500`} />
+    default:        return <Pin     className={`${cls} text-[#9A9A9A]`} />
   }
+}
+
+function KpiSkeleton() {
+  return (
+    <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-[#E0DAD0] p-5 animate-pulse">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 bg-[#E0DAD0] rounded" />
+        <div className="h-3 w-24 bg-[#E0DAD0] rounded" />
+      </div>
+      <div className="h-7 w-20 bg-[#E0DAD0] rounded mb-1" />
+      <div className="h-3 w-28 bg-[#E0DAD0] rounded" />
+    </div>
+  )
 }
 
 // ─── Composant principal ──────────────────────────────────────────────────────
@@ -54,7 +68,7 @@ export default function DashboardPage() {
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
 
   // Contacts par stage (entonnoir)
-  const { data: pipeline = [] } = useQuery({
+  const { data: pipeline = [], isLoading: loadingPipeline } = useQuery({
     queryKey: ['pipeline-counts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -67,7 +81,7 @@ export default function DashboardPage() {
   })
 
   // KPI projets actifs
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
     queryKey: ['projects-kpi'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,7 +96,7 @@ export default function DashboardPage() {
   })
 
   // KPI CA mois courant
-  const { data: invoices = [] } = useQuery({
+  const { data: invoices = [], isLoading: loadingInvoices } = useQuery({
     queryKey: ['invoices-kpi'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,7 +109,7 @@ export default function DashboardPage() {
   })
 
   // Activité récente
-  const { data: activity = [] } = useQuery({
+  const { data: activity = [], isLoading: loadingActivity } = useQuery({
     queryKey: ['activity-recent'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -107,6 +121,8 @@ export default function DashboardPage() {
       return (data ?? []) as ActivityLog[]
     },
   })
+
+  const kpisLoading = loadingPipeline || loadingInvoices
 
   // ── Calculs ──
   const kpis = useMemo(() => {
@@ -130,7 +146,7 @@ export default function DashboardPage() {
       {/* ── Greeting ─────────────────────────────────────────────────────── */}
       <div>
         <h1 className="font-heading text-2xl text-fourmiliance-forest font-semibold">
-          Bonjour {firstName} 👋
+          Bonjour {firstName}
         </h1>
         <p className="text-sm text-[#7A7A7A] capitalize mt-0.5">
           {formatLongDate(now)}
@@ -139,38 +155,48 @@ export default function DashboardPage() {
 
       {/* ── KPI cards ────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-fourmiliance-mid p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-fourmiliance-mid" />
-            <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">CA ce mois</span>
-          </div>
-          <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
-            {formatCurrency(kpis.caMois)}
-          </p>
-          <p className="text-xs text-[#9A9A9A] mt-1">factures encaissées</p>
-        </div>
+        {kpisLoading ? (
+          <>
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+          </>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-fourmiliance-mid p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-5 h-5 text-fourmiliance-mid" aria-hidden="true" />
+                <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">CA ce mois</span>
+              </div>
+              <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
+                {formatCurrency(kpis.caMois)}
+              </p>
+              <p className="text-xs text-[#9A9A9A] mt-1">factures encaissées</p>
+            </div>
 
-        <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-sky-400 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <FolderKanban className="w-5 h-5 text-sky-500" />
-            <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Projets actifs</span>
-          </div>
-          <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
-            {kpis.projetsActifs}
-          </p>
-          <p className="text-xs text-[#9A9A9A] mt-1">en production</p>
-        </div>
+            <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-sky-400 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <FolderKanban className="w-5 h-5 text-sky-500" aria-hidden="true" />
+                <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Projets actifs</span>
+              </div>
+              <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
+                {kpis.projetsActifs}
+              </p>
+              <p className="text-xs text-[#9A9A9A] mt-1">en production</p>
+            </div>
 
-        <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-amber-400 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Users className="w-5 h-5 text-amber-500" />
-            <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Pipeline</span>
-          </div>
-          <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
-            {pipeline.length}
-          </p>
-          <p className="text-xs text-[#9A9A9A] mt-1">prospects actifs</p>
-        </div>
+            <div className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-amber-400 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-5 h-5 text-amber-500" aria-hidden="true" />
+                <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Pipeline</span>
+              </div>
+              <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
+                {pipeline.length}
+              </p>
+              <p className="text-xs text-[#9A9A9A] mt-1">prospects actifs</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Entonnoir CRM ────────────────────────────────────────────────── */}
@@ -218,8 +244,27 @@ export default function DashboardPage() {
               Tous <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
-          {projects.length === 0 ? (
-            <p className="text-sm text-[#9A9A9A]">Aucun projet actif.</p>
+          {loadingProjects ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3].map(i => (
+                <div key={i}>
+                  <div className="flex justify-between mb-1.5">
+                    <div className="h-3.5 w-32 bg-[#E0DAD0] rounded" />
+                    <div className="h-3.5 w-8 bg-[#E0DAD0] rounded" />
+                  </div>
+                  <div className="h-1.5 bg-[#E0DAD0] rounded-full" />
+                </div>
+              ))}
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center py-6">
+              <FolderKanban className="w-8 h-8 text-[#C0B8B0] mx-auto mb-2" aria-hidden="true" />
+              <p className="text-sm text-[#9A9A9A] mb-3">Aucun projet en cours</p>
+              <Link to="/app/projects"
+                className="inline-flex items-center gap-1 text-xs text-fourmiliance-mid hover:underline font-medium">
+                Créer un projet <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           ) : (
             <div className="space-y-3">
               {projects.map(p => (
@@ -247,15 +292,30 @@ export default function DashboardPage() {
             <Activity className="w-4 h-4 text-fourmiliance-forest" />
             <h2 className="font-heading text-base text-fourmiliance-forest">Activité récente</h2>
           </div>
-          {activity.length === 0 ? (
-            <p className="text-sm text-[#9A9A9A]">Aucune activité enregistrée.</p>
+          {loadingActivity ? (
+            <div className="space-y-3 animate-pulse">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="flex gap-3">
+                  <div className="w-4 h-4 bg-[#E0DAD0] rounded flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-3 bg-[#E0DAD0] rounded w-3/4" />
+                    <div className="h-2.5 bg-[#E0DAD0] rounded w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activity.length === 0 ? (
+            <div className="text-center py-6">
+              <Activity className="w-8 h-8 text-[#C0B8B0] mx-auto mb-2" aria-hidden="true" />
+              <p className="text-sm text-[#9A9A9A]">Aucune activité pour le moment</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {activity.map(log => (
                 <div key={log.id} className="flex gap-3">
-                  <span className="text-base flex-shrink-0 leading-5 mt-0.5">
-                    {activityIcon(log.entity_type)}
-                  </span>
+                  <div className="flex-shrink-0 mt-0.5">
+                    <ActivityIcon entityType={log.entity_type} />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-[#2A2A2A] leading-snug">
                       <strong>{log.actor?.full_name ?? 'Système'}</strong>

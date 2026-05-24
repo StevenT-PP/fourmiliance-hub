@@ -108,8 +108,30 @@ export default function FinancePage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-pulse">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-xl border border-[#E0DAD0] border-l-4 border-l-[#E0DAD0] p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-5 h-5 bg-[#E0DAD0] rounded" />
+                <div className="h-3 w-24 bg-[#E0DAD0] rounded" />
+              </div>
+              <div className="h-7 w-28 bg-[#E0DAD0] rounded mb-1" />
+              <div className="h-3 w-20 bg-[#E0DAD0] rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6 animate-pulse">
+          <div className="h-4 w-48 bg-[#E0DAD0] rounded mb-6" />
+          <div className="flex items-end gap-1.5 h-36">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full bg-[#E0DAD0] rounded-t" style={{ height: `${20 + Math.random() * 60}%` }} />
+                <div className="h-2 w-6 bg-[#E0DAD0] rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -144,29 +166,61 @@ export default function FinancePage() {
 
       {/* ── Graphique CA mensuel ─────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
-        <h2 className="font-heading text-base text-fourmiliance-forest mb-6">
-          CA mensuel — 12 derniers mois
-        </h2>
-        <div className="flex items-end gap-1.5 h-36">
-          {chartBars.map(bar => {
-            const heightPct = maxBar > 0 ? (bar.amount / maxBar) * 100 : 0
-            return (
-              <div key={bar.label} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  title={formatCurrency(bar.amount)}
-                  className={`w-full rounded-t transition-all
-                    ${bar.isCurrent ? 'bg-fourmiliance-ocre' : 'bg-fourmiliance-mid/30'}
-                    ${bar.amount === 0 ? 'opacity-30' : ''}
-                  `}
-                  style={{ height: `${Math.max(heightPct, bar.amount > 0 ? 4 : 1)}%` }}
-                />
-                <span className="text-[9px] text-[#9A9A9A] text-center leading-none">
-                  {bar.label}
-                </span>
-              </div>
-            )
-          })}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-heading text-base text-fourmiliance-forest">
+            CA mensuel — 12 derniers mois
+          </h2>
+          {maxBar > 0 && (
+            <span className="text-xs text-[#9A9A9A]">
+              Max : {formatCurrency(maxBar)}
+            </span>
+          )}
         </div>
+        {maxBar === 0 ? (
+          <div className="h-36 flex flex-col items-center justify-center gap-2">
+            <TrendingUp className="w-8 h-8 text-[#C0B8B0]" aria-hidden="true" />
+            <p className="text-sm text-[#9A9A9A]">Aucune facture payée sur cette période</p>
+          </div>
+        ) : (
+          <div role="img" aria-label="Graphique du chiffre d'affaires mensuel sur 12 mois">
+            <div className="flex items-end gap-1.5 h-36">
+              {chartBars.map(bar => {
+                const heightPct = maxBar > 0 ? (bar.amount / maxBar) * 100 : 0
+                return (
+                  <div key={bar.label} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    {/* Tooltip valeur */}
+                    {bar.amount > 0 && (
+                      <span className="absolute -top-7 left-1/2 -translate-x-1/2 bg-fourmiliance-forest text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {formatCurrency(bar.amount)}
+                      </span>
+                    )}
+                    <div
+                      aria-label={`${bar.label} : ${formatCurrency(bar.amount)}`}
+                      className={`w-full rounded-t transition-all cursor-default
+                        ${bar.isCurrent ? 'bg-fourmiliance-ocre' : 'bg-fourmiliance-mid/40 group-hover:bg-fourmiliance-mid/60'}
+                        ${bar.amount === 0 ? 'opacity-20' : ''}
+                      `}
+                      style={{ height: `${Math.max(heightPct, bar.amount > 0 ? 4 : 1)}%` }}
+                    />
+                    <span className="text-[10px] text-[#9A9A9A] text-center leading-none">
+                      {bar.label}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#F0EBE4]">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-fourmiliance-mid/40" />
+                <span className="text-[10px] text-[#9A9A9A]">Mois précédents</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-sm bg-fourmiliance-ocre" />
+                <span className="text-[10px] text-[#9A9A9A]">Mois en cours</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Devis & Factures ─────────────────────────────────────────────── */}

@@ -34,6 +34,7 @@ interface ProjectFull {
   contact_id: string | null
   client_id: string | null
   contact: { id: string; company: string; contact_name: string } | null
+  client: { id: string; full_name: string } | null
 }
 
 type DeliverableStatus = 'a_venir' | 'en_attente' | 'valide' | 'refuse'
@@ -85,7 +86,7 @@ export default function ProjectDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, contact:contact_id(id, company, contact_name)')
+        .select('*, contact:contact_id(id, company, contact_name), client:client_id(id, full_name)')
         .eq('id', id!)
         .single()
       if (error) throw error
@@ -273,6 +274,12 @@ export default function ProjectDetail() {
                 )}
                 {project.budget != null && (
                   <span>Budget : <strong>{formatCurrency(project.budget)}</strong></span>
+                )}
+                {project.client && (
+                  <span className="flex items-center gap-1">
+                    <ExternalLink className="w-3.5 h-3.5 text-fourmiliance-mid" aria-hidden="true" />
+                    Client portail : <strong className="text-fourmiliance-mid">{project.client.full_name}</strong>
+                  </span>
                 )}
               </div>
 

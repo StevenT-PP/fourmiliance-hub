@@ -7,6 +7,7 @@ import ClientLayout from './layouts/ClientLayout'
 
 // ─── Lazy-loaded feature pages (code splitting) ────────────────────────────
 const ClientPortal    = lazy(() => import('./features/portal/ClientPortal'))
+const PortalHubPage   = lazy(() => import('./features/portal/PortalHubPage'))
 const CrmPage         = lazy(() => import('./features/crm/CrmPage'))
 const ContactDetail   = lazy(() => import('./features/crm/ContactDetail'))
 const ProjectsPage    = lazy(() => import('./features/projects/ProjectsPage'))
@@ -95,7 +96,7 @@ function AppRoutes() {
         <Route path="association"      element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
         <Route path="association/fonds" element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
         <Route path="incubateur"       element={<Suspense fallback={<PageLoader />}><IncubateurPage /></Suspense>} />
-        <Route path="portal"             element={<Placeholder title="Portail Client — accès via /client/:projectId" />} />
+        <Route path="portal"           element={<Suspense fallback={<PageLoader />}><PortalHubPage /></Suspense>} />
         <Route path="settings"         element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>

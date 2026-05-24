@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft, Copy, Check, CheckCircle2, Circle, ChevronDown, ChevronRight,
-  Plus, Download, Pencil, ExternalLink, FileText,
+  Plus, Download, Pencil, ExternalLink, FileText, Trash2,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Task, Deliverable, Profile, Invoice, Contact } from '../../types'
@@ -20,6 +20,7 @@ import {
   INVOICE_STATUS_COLORS,
 } from '../../lib/constants'
 import { formatCurrency, formatDate, getInitials } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 import InvoiceForm from '../finance/InvoiceForm'
 
 // ─── Types locaux ───────────────────────────────────────────────────────────
@@ -473,6 +474,7 @@ function EditHeaderForm({
     client_id:  project.client_id ?? '',
   })
   const [saving, setSaving] = useState(false)
+  const { show: showToast } = useToast()
 
   const { data: clients = [] } = useQuery({
     queryKey: ['profiles', 'clients'],
@@ -490,7 +492,7 @@ function EditHeaderForm({
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('projects').update({
+    const { error } = await supabase.from('projects').update({
       name:        form.name.trim(),
       type:        form.type || null,
       status:      form.status as ProjectStatus,
@@ -501,6 +503,8 @@ function EditHeaderForm({
       client_id:   form.client_id || null,
     }).eq('id', project.id)
     setSaving(false)
+    if (error) { showToast('Erreur lors de la sauvegarde', 'error'); return }
+    showToast('Projet mis à jour')
     onSaved()
   }
 
@@ -779,10 +783,12 @@ function TaskRow({
         <div className="ml-8 space-y-0.5">
           {subtasks.map(sub => (
             <div key={sub.id}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-fourmiliance-surface cursor-pointer text-xs text-fourmiliance-tertiary"
-              onClick={onSelect}
+              className="flex items-center gap-2 px-2 py-1 rounded-lg text-xs text-fourmiliance-tertiary"
             >
-              <Circle className="w-3 h-3 shrink-0 text-fourmiliance-disabled" />
+              {sub.status === 'done'
+                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-fourmiliance-mid" aria-hidden="true" />
+                : <Circle className="w-3 h-3 shrink-0 text-fourmiliance-disabled" aria-hidden="true" />
+              }
               <span className={sub.status === 'done' ? 'line-through text-fourmiliance-ghost' : ''}>{sub.title}</span>
             </div>
           ))}
@@ -801,9 +807,20 @@ function DeliverableSection({
   deliverables: Deliverable[]
   onRefresh: () => void
 }) {
-  async function validate(id: string) {
+  const { show: showToast } = useToast()
+
+  async function validate(id: string, name: string) {
     await supabase.from('deliverables').update({ status: 'valide' }).eq('id', id)
     onRefresh()
+    showToast(`Livrable validé : ${name}`)
+  }
+
+  async function deleteDeliverable(id: string, name: string) {
+    if (!window.confirm(`Supprimer le livrable "${name}" ?`)) return
+    const { error } = await supabase.from('deliverables').delete().eq('id', id)
+    if (error) { showToast('Erreur lors de la suppression', 'error'); return }
+    onRefresh()
+    showToast(`Livrable supprimé`)
   }
 
   return (
@@ -832,20 +849,26 @@ function DeliverableSection({
                     rel="noopener noreferrer"
                     aria-label={`Télécharger ${d.name}`}
                     className="text-fourmiliance-mid hover:text-fourmiliance-forest transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-                    onClick={e => e.stopPropagation()}
                   >
                     <Download className="w-4 h-4" aria-hidden="true" />
                   </a>
                 )}
                 {status === 'en_attente' && (
                   <button
-                    onClick={() => validate(d.id)}
+                    onClick={() => validate(d.id, d.name)}
                     className="text-xs badge-green border border-fourmiliance-success-bg
                                px-2 py-1 rounded hover:bg-fourmiliance-success-bg/80 transition-colors shrink-0"
                   >
                     Valider
                   </button>
                 )}
+                <button
+                  onClick={() => deleteDeliverable(d.id, d.name)}
+                  aria-label={`Supprimer le livrable ${d.name}`}
+                  className="p-1.5 rounded text-fourmiliance-ghost hover:text-fourmiliance-rust hover:bg-fourmiliance-rust-bg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
               </div>
             )
           })}
@@ -1043,6 +1066,7 @@ function TaskPanel({
   const [saving, setSaving]         = useState(false)
   const [newSubtitle, setNewSubtitle] = useState('')
   const [addingSub, setAddingSub]   = useState(false)
+  const { show: showToast } = useToast()
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -1057,6 +1081,8 @@ function TaskPanel({
       }).eq('id', task.id)
       if (error) throw error
     },
+    onSuccess: () => showToast('Tâche sauvegardée'),
+    onError:   () => showToast('Erreur lors de la sauvegarde', 'error'),
     onSettled: () => { setSaving(false); onRefresh() },
   })
 

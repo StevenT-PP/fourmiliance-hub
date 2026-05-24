@@ -14,6 +14,15 @@ import FundTracker from '../finance/FundTracker'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+const ACTION_LABELS: Record<string, string> = {
+  note_added:            'a ajouté une note',
+  task_status_changed:   'a mis à jour une tâche',
+  devis_created:         'a créé un devis',
+  invoice_created:       'a créé une facture',
+  file_uploaded:         'a téléversé un fichier',
+  contact_stage_changed: 'a déplacé un contact dans le pipeline',
+}
+
 interface PipelineCount {
   pipeline_stage: string
 }
@@ -94,6 +103,18 @@ export default function DashboardPage() {
     },
   })
 
+  const { data: activeProjectCount = 0 } = useQuery({
+    queryKey: ['projects-count-active'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['briefing', 'maquette', 'developpement', 'validation'])
+      if (error) throw error
+      return count ?? 0
+    },
+  })
+
   const { data: invoices = [], isLoading: loadingInvoices } = useQuery({
     queryKey: ['invoices-kpi'],
     queryFn: async () => {
@@ -131,7 +152,7 @@ export default function DashboardPage() {
       return acc
     }, {})
 
-    return { caMois, pipelineCounts, projetsActifs: projects.length }
+    return { caMois, pipelineCounts }
   }, [invoices, pipeline, projects])
 
   const maxPipeline = Math.max(...Object.values(kpis.pipelineCounts), 1)
@@ -176,7 +197,7 @@ export default function DashboardPage() {
                 <span className="text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">Projets actifs</span>
               </div>
               <p className="font-heading text-2xl text-fourmiliance-forest font-semibold">
-                {kpis.projetsActifs}
+                {activeProjectCount}
               </p>
               <p className="text-xs text-fourmiliance-ghost mt-1">en production</p>
             </div>
@@ -334,8 +355,8 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-fourmiliance-body leading-snug">
                       <strong>{log.actor?.full_name ?? 'Système'}</strong>
-                      {' — '}
-                      {log.action.replace(/_/g, ' ')}
+                      {' '}
+                      {ACTION_LABELS[log.action] ?? log.action.replace(/_/g, ' ')}
                       {log.entity_label ? ` : ${log.entity_label}` : ''}
                     </p>
                     <p className="text-[10px] text-fourmiliance-ghost mt-0.5">

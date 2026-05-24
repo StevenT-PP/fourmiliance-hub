@@ -9,6 +9,7 @@ import {
   type InvoiceStatus,
 } from '../../lib/constants'
 import { formatCurrency, formatDate } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 import InvoiceForm from './InvoiceForm'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ function effectiveStatus(inv: InvoiceRow): InvoiceStatus {
 
 export default function InvoiceList() {
   const qc = useQueryClient()
+  const { show: showToast } = useToast()
   const [showForm, setShowForm]           = useState(false)
   const [typeFilter, setTypeFilter]       = useState<'all' | 'devis' | 'facture'>('all')
   const [statusFilter, setStatusFilter]   = useState<InvoiceStatus | 'all'>('all')
@@ -72,11 +74,16 @@ export default function InvoiceList() {
   })
 
   async function changeStatus(id: string, status: InvoiceStatus) {
-    await supabase
+    const { error } = await supabase
       .from('invoices')
       .update({ status, ...(status === 'paye' ? { paid_date: new Date().toISOString().slice(0, 10) } : {}) })
       .eq('id', id)
+    if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
     qc.invalidateQueries({ queryKey: ['invoices'] })
+    qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
+    qc.invalidateQueries({ queryKey: ['invoices', 'project'] })
+    const label = INVOICE_STATUS_LABELS[status]
+    showToast(`Statut mis à jour : ${label}`)
   }
 
   if (isLoading) {

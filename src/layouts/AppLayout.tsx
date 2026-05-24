@@ -87,7 +87,9 @@ function Initials({ name }: { name: string }) {
 
 function PageTitle() {
   const { pathname } = useLocation()
+  // Sort by descending path length so /app/association/fonds matches before /app/association
   const allItems = adminNav.flatMap(s => s.items)
+    .sort((a, b) => b.path.length - a.path.length)
   const found = allItems.find(i => pathname.startsWith(i.path))
   return (
     <span className="font-heading text-lg font-semibold text-fourmiliance-forest">

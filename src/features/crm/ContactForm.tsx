@@ -53,6 +53,14 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  useEffect(() => {
     if (contact) {
       setForm({
         company:         contact.company,

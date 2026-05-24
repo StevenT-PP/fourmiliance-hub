@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -80,6 +80,14 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
 
   // ── Fetching contacts & projects for selects ─────────────────────────────────
 

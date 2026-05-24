@@ -23,6 +23,7 @@ interface ProjectSummary {
   name: string
   status: string
   progress: number
+  tasks: { status: string }[]
 }
 
 interface InvoiceSummary {
@@ -84,12 +85,12 @@ export default function DashboardPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, status, progress')
+        .select('id, name, status, progress, tasks(status)')
         .in('status', ['briefing', 'maquette', 'developpement', 'validation'])
         .order('updated_at', { ascending: false })
         .limit(5)
       if (error) throw error
-      return (data ?? []) as ProjectSummary[]
+      return (data ?? []) as unknown as ProjectSummary[]
     },
   })
 
@@ -269,28 +270,33 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {projects.map(p => (
-                <Link key={p.id} to={`/app/projects/${p.id}`}
-                  className="block hover:bg-fourmiliance-surface rounded-lg p-2 -mx-2 transition-colors">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-fourmiliance-body truncate">{p.name}</span>
-                    <span className="text-xs text-fourmiliance-ghost flex-shrink-0 ml-2">{p.progress}%</span>
-                  </div>
-                  <div
-                    role="progressbar"
-                    aria-valuenow={p.progress}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-label={`${p.name} : ${p.progress}%`}
-                    className="h-1.5 bg-fourmiliance-track rounded-full overflow-hidden"
-                  >
+              {projects.map(p => {
+                const computed = p.tasks?.length > 0
+                  ? Math.round(p.tasks.filter(t => t.status === 'done').length / p.tasks.length * 100)
+                  : (p.progress ?? 0)
+                return (
+                  <Link key={p.id} to={`/app/projects/${p.id}`}
+                    className="block hover:bg-fourmiliance-surface rounded-lg p-2 -mx-2 transition-colors">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-fourmiliance-body truncate">{p.name}</span>
+                      <span className="text-xs text-fourmiliance-ghost flex-shrink-0 ml-2">{computed}%</span>
+                    </div>
                     <div
-                      className="h-full bg-fourmiliance-mid rounded-full transition-all duration-300"
-                      style={{ width: `${p.progress}%` }}
-                    />
-                  </div>
-                </Link>
-              ))}
+                      role="progressbar"
+                      aria-valuenow={computed}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${p.name} : ${computed}%`}
+                      className="h-1.5 bg-fourmiliance-track rounded-full overflow-hidden"
+                    >
+                      <div
+                        className="h-full bg-fourmiliance-mid rounded-full transition-all duration-300"
+                        style={{ width: `${computed}%` }}
+                      />
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>

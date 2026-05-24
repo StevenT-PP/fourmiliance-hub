@@ -46,7 +46,17 @@ function ProtectedRoute({
     )
   }
 
-  if (!user || !profile) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/login" replace />
+
+  // Connecté mais profil pas encore chargé (première visite, pas de cache)
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-fourmiliance-cream flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
   if (roles && !roles.includes(profile.role)) return <Navigate to="/login" replace />
   return element
 }

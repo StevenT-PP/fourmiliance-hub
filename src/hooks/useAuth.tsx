@@ -34,19 +34,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Lecture localStorage — pas de réseau, débloque l'UI immédiatement
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session?.user) {
+          setUser(session.user)
+          setProfile(getCachedProfile())  // null si première visite
+        }
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+
+    // Mises à jour auth : connexion, déconnexion, refresh token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
           setUser(session.user)
 
-          // Afficher immédiatement depuis le cache → élimine l'attente réseau
-          const cached = getCachedProfile()
-          if (cached) {
-            setProfile(cached)
-            setLoading(false)
-          }
-
-          // Rafraîchir le profil en arrière-plan
+          // Fetch / rafraîchit le profil en arrière-plan
           const { data } = await supabase
             .from('profiles')
             .select('*')
@@ -58,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(data))
           } else {
             // Utilisateur sans profil — déconnexion forcée
-            await supabase.auth.signOut()
+            void supabase.auth.signOut()
             setUser(null)
             setProfile(null)
             localStorage.removeItem(PROFILE_CACHE_KEY)
@@ -68,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null)
           localStorage.removeItem(PROFILE_CACHE_KEY)
         }
-        setLoading(false)
       }
     )
 

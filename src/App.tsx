@@ -1,19 +1,30 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth.tsx'
 import LoginPage from './features/auth/LoginPage'
 import AppLayout from './layouts/AppLayout'
 import ClientLayout from './layouts/ClientLayout'
-import ClientPortal from './features/portal/ClientPortal'
-import CrmPage from './features/crm/CrmPage'
-import ContactDetail from './features/crm/ContactDetail'
-import ProjectsPage from './features/projects/ProjectsPage'
-import ProjectDetail from './features/projects/ProjectDetail'
-import FinancePage from './features/finance/FinancePage'
-import DashboardPage from './features/dashboard/DashboardPage'
-import TeamPage from './features/team/TeamPage'
-import MyTasksPage from './features/team/MyTasksPage'
-import AssociationPage from './features/association/AssociationPage'
-import IncubateurPage from './features/incubateur/IncubateurPage'
+
+// ─── Lazy-loaded feature pages (code splitting) ────────────────────────────
+const ClientPortal    = lazy(() => import('./features/portal/ClientPortal'))
+const CrmPage         = lazy(() => import('./features/crm/CrmPage'))
+const ContactDetail   = lazy(() => import('./features/crm/ContactDetail'))
+const ProjectsPage    = lazy(() => import('./features/projects/ProjectsPage'))
+const ProjectDetail   = lazy(() => import('./features/projects/ProjectDetail'))
+const FinancePage     = lazy(() => import('./features/finance/FinancePage'))
+const DashboardPage   = lazy(() => import('./features/dashboard/DashboardPage'))
+const TeamPage        = lazy(() => import('./features/team/TeamPage'))
+const MyTasksPage     = lazy(() => import('./features/team/MyTasksPage'))
+const AssociationPage = lazy(() => import('./features/association/AssociationPage'))
+const IncubateurPage  = lazy(() => import('./features/incubateur/IncubateurPage'))
+
+function PageLoader() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
 function ProtectedRoute({
   element,
@@ -72,17 +83,17 @@ function AppRoutes() {
       <Route path="/app" element={
         <ProtectedRoute roles={['admin', 'sous_traitant']} element={<AppLayout />} />
       }>
-        <Route path="dashboard"        element={<DashboardPage />} />
-        <Route path="crm"              element={<CrmPage />} />
-        <Route path="crm/:id"          element={<ContactDetail />} />
-        <Route path="projects"         element={<ProjectsPage />} />
-        <Route path="projects/:id"     element={<ProjectDetail />} />
-        <Route path="finance"          element={<FinancePage />} />
-        <Route path="team"             element={<TeamPage />} />
-        <Route path="mes-taches"       element={<MyTasksPage />} />
-        <Route path="association"      element={<AssociationPage />} />
-        <Route path="association/fonds" element={<AssociationPage />} />
-        <Route path="incubateur"       element={<IncubateurPage />} />
+        <Route path="dashboard"        element={<Suspense fallback={<PageLoader />}><DashboardPage /></Suspense>} />
+        <Route path="crm"              element={<Suspense fallback={<PageLoader />}><CrmPage /></Suspense>} />
+        <Route path="crm/:id"          element={<Suspense fallback={<PageLoader />}><ContactDetail /></Suspense>} />
+        <Route path="projects"         element={<Suspense fallback={<PageLoader />}><ProjectsPage /></Suspense>} />
+        <Route path="projects/:id"     element={<Suspense fallback={<PageLoader />}><ProjectDetail /></Suspense>} />
+        <Route path="finance"          element={<Suspense fallback={<PageLoader />}><FinancePage /></Suspense>} />
+        <Route path="team"             element={<Suspense fallback={<PageLoader />}><TeamPage /></Suspense>} />
+        <Route path="mes-taches"       element={<Suspense fallback={<PageLoader />}><MyTasksPage /></Suspense>} />
+        <Route path="association"      element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
+        <Route path="association/fonds" element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
+        <Route path="incubateur"       element={<Suspense fallback={<PageLoader />}><IncubateurPage /></Suspense>} />
         <Route path="portal"           element={<Placeholder title="Portail Client — accès via /client/:projectId" />} />
         <Route path="settings"         element={<Placeholder title="Paramètres" />} />
         <Route index element={<Navigate to="dashboard" replace />} />
@@ -92,7 +103,7 @@ function AppRoutes() {
       <Route path="/client/:projectId" element={
         <ProtectedRoute roles={['client', 'admin']} element={<ClientLayout />} />
       }>
-        <Route index element={<ClientPortal />} />
+        <Route index element={<Suspense fallback={<PageLoader />}><ClientPortal /></Suspense>} />
       </Route>
 
       {/* Association (rôle membre) */}

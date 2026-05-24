@@ -81,6 +81,7 @@ CREATE TABLE tasks (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id    UUID REFERENCES projects(id) ON DELETE CASCADE,
   contact_id    UUID REFERENCES contacts(id),
+  client_id     UUID REFERENCES profiles(id),
   parent_id     UUID REFERENCES tasks(id),
   assigned_to   UUID REFERENCES profiles(id),
   title         TEXT NOT NULL,
@@ -95,6 +96,7 @@ CREATE TABLE tasks (
 CREATE TABLE deliverables (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id  UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  client_id   UUID REFERENCES profiles(id),
   name        TEXT NOT NULL,
   type        TEXT,
   status      TEXT DEFAULT 'a_venir' CHECK (status IN ('a_venir','en_attente','valide','refuse')),
@@ -109,6 +111,7 @@ CREATE TABLE deliverables (
 CREATE TABLE messages (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  client_id  UUID REFERENCES profiles(id),
   sender_id  UUID NOT NULL REFERENCES profiles(id),
   content    TEXT NOT NULL,
   read_by    UUID[] DEFAULT '{}',
@@ -213,6 +216,55 @@ CREATE TABLE activity_log (
 );
 
 -- ═══════════════════════════════════════════════════════════════════
+-- TABLE SHADOW user_roles (sans RLS — évite la récursion infinie)
+-- ═══════════════════════════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS user_roles (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  role    TEXT NOT NULL
+);
+ALTER TABLE user_roles DISABLE ROW LEVEL SECURITY;
+
+-- Synchronisation automatique quand profiles.role change
+CREATE OR REPLACE FUNCTION sync_user_role()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  INSERT INTO user_roles (user_id, role)
+  VALUES (NEW.id, NEW.role)
+  ON CONFLICT (user_id) DO UPDATE SET role = NEW.role;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_sync_user_role ON profiles;
+CREATE TRIGGER trg_sync_user_role
+  AFTER INSERT OR UPDATE OF role ON profiles
+  FOR EACH ROW EXECUTE FUNCTION sync_user_role();
+
+-- Auto-fill client_id depuis projects à l'insertion
+CREATE OR REPLACE FUNCTION fill_client_id_from_project()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.project_id IS NOT NULL THEN
+    SELECT client_id INTO NEW.client_id FROM projects WHERE id = NEW.project_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_task_client ON tasks;
+CREATE TRIGGER trg_task_client
+  BEFORE INSERT ON tasks FOR EACH ROW EXECUTE FUNCTION fill_client_id_from_project();
+
+DROP TRIGGER IF EXISTS trg_message_client ON messages;
+CREATE TRIGGER trg_message_client
+  BEFORE INSERT ON messages FOR EACH ROW EXECUTE FUNCTION fill_client_id_from_project();
+
+DROP TRIGGER IF EXISTS trg_deliverable_client ON deliverables;
+CREATE TRIGGER trg_deliverable_client
+  BEFORE INSERT ON deliverables FOR EACH ROW EXECUTE FUNCTION fill_client_id_from_project();
+
+-- ═══════════════════════════════════════════════════════════════════
 -- ROW LEVEL SECURITY
 -- ═══════════════════════════════════════════════════════════════════
 
@@ -232,11 +284,11 @@ ALTER TABLE invoice_line_items   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE association_members  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE association_events   ENABLE ROW LEVEL SECURITY;
 
--- Helper : rôle de l'utilisateur connecté
+-- Helper : rôle sans récursion (lit user_roles, table sans RLS)
 CREATE OR REPLACE FUNCTION get_my_role()
-RETURNS TEXT AS $$
-  SELECT role FROM profiles WHERE id = auth.uid();
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+RETURNS TEXT LANGUAGE sql STABLE SECURITY DEFINER AS $$
+  SELECT role FROM user_roles WHERE user_id = auth.uid();
+$$;
 
 -- PROFILES
 CREATE POLICY "profiles_select" ON profiles FOR SELECT
@@ -250,16 +302,13 @@ CREATE POLICY "contacts_admin" ON contacts FOR ALL
 CREATE POLICY "contacts_assignee_select" ON contacts FOR SELECT
   USING (assigned_to = auth.uid() AND get_my_role() = 'sous_traitant');
 
--- PROJECTS
+-- PROJECTS (sous_traitant sans jointure tasks — évite la récursion croisée)
 CREATE POLICY "projects_admin" ON projects FOR ALL
   USING (get_my_role() = 'admin');
 CREATE POLICY "projects_client_select" ON projects FOR SELECT
   USING (client_id = auth.uid() AND get_my_role() = 'client');
 CREATE POLICY "projects_contractor_select" ON projects FOR SELECT
-  USING (
-    get_my_role() = 'sous_traitant' AND
-    EXISTS (SELECT 1 FROM tasks WHERE tasks.project_id = projects.id AND tasks.assigned_to = auth.uid())
-  );
+  USING (get_my_role() = 'sous_traitant');
 
 -- CONTACT_NOTES
 CREATE POLICY "contact_notes_admin" ON contact_notes FOR ALL USING (get_my_role() = 'admin');
@@ -270,45 +319,33 @@ CREATE POLICY "contact_notes_insert" ON contact_notes FOR INSERT WITH CHECK (aut
 CREATE POLICY "contact_tasks_admin" ON contact_tasks FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "contact_tasks_assignee" ON contact_tasks FOR SELECT USING (assigned_to = auth.uid());
 
--- DELIVERABLES
+-- DELIVERABLES (client_id dénormalisé — sans jointure projects/tasks)
 CREATE POLICY "deliverables_admin" ON deliverables FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "deliverables_contractor_select" ON deliverables FOR SELECT
-  USING (
-    get_my_role() = 'sous_traitant' AND
-    EXISTS (SELECT 1 FROM tasks WHERE tasks.project_id = deliverables.project_id AND tasks.assigned_to = auth.uid())
-  );
+  USING (get_my_role() = 'sous_traitant');
 CREATE POLICY "deliverables_client_select" ON deliverables FOR SELECT
-  USING (
-    get_my_role() = 'client' AND
-    EXISTS (SELECT 1 FROM projects WHERE projects.id = deliverables.project_id AND projects.client_id = auth.uid())
-  );
+  USING (get_my_role() = 'client' AND client_id = auth.uid());
 
 -- ACTIVITY_LOG
 CREATE POLICY "activity_admin" ON activity_log FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "activity_insert" ON activity_log FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "activity_own" ON activity_log FOR SELECT USING (user_id = auth.uid());
 
--- TASKS
+-- TASKS (client_id dénormalisé — sans jointure projects)
 CREATE POLICY "tasks_admin" ON tasks FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "tasks_assignee_select" ON tasks FOR SELECT USING (assigned_to = auth.uid());
 CREATE POLICY "tasks_assignee_update" ON tasks FOR UPDATE
   USING (assigned_to = auth.uid() AND get_my_role() = 'sous_traitant')
   WITH CHECK (assigned_to = auth.uid());
 CREATE POLICY "tasks_client_select" ON tasks FOR SELECT
-  USING (
-    get_my_role() = 'client' AND
-    EXISTS (SELECT 1 FROM projects WHERE projects.id = tasks.project_id AND projects.client_id = auth.uid())
-  );
+  USING (get_my_role() = 'client' AND client_id = auth.uid());
 
--- MESSAGES
+-- MESSAGES (client_id dénormalisé — sans jointure projects)
 CREATE POLICY "messages_admin" ON messages FOR ALL USING (get_my_role() = 'admin');
 CREATE POLICY "messages_project_select" ON messages FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM projects
-      WHERE projects.id = messages.project_id
-      AND (projects.client_id = auth.uid() OR get_my_role() IN ('admin','sous_traitant'))
-    )
+    get_my_role() IN ('admin', 'sous_traitant') OR
+    (get_my_role() = 'client' AND client_id = auth.uid())
   );
 CREATE POLICY "messages_insert" ON messages FOR INSERT
   WITH CHECK (sender_id = auth.uid());

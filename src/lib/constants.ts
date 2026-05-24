@@ -42,21 +42,21 @@ export const PIPELINE_LABELS: Record<PipelineStage, string> = {
 }
 
 export const PIPELINE_COLORS: Record<PipelineStage, string> = {
-  prospect:  'bg-gray-100 text-gray-700',
-  contacte:  'bg-blue-100 text-blue-700',
-  devis:     'bg-amber-100 text-amber-700',
-  signe:     'bg-green-100 text-green-700',
-  en_cours:  'bg-emerald-100 text-emerald-700',
-  livre:     'bg-gray-100 text-gray-600',
-  archive:   'bg-gray-50 text-gray-500',
-  perdu:     'bg-red-100 text-red-700',
+  prospect:  'badge-neutral',
+  contacte:  'badge-sage',
+  devis:     'badge-warm',
+  signe:     'badge-green',
+  en_cours:  'badge-pine',
+  livre:     'badge-ink',
+  archive:   'badge-neutral',
+  perdu:     'badge-rust',
 }
 
 export const SERVICE_LABELS: Record<ServiceType, { label: string; badge: string }> = {
-  vitrine:    { label: 'Site Vitrine',    badge: 'bg-blue-100 text-blue-700' },
-  ecommerce:  { label: 'E-commerce',      badge: 'bg-purple-100 text-purple-700' },
-  agent_ia:   { label: 'Agent IA',        badge: 'bg-amber-100 text-amber-700' },
-  automation: { label: 'Automation',      badge: 'bg-teal-100 text-teal-700' },
+  vitrine:    { label: 'Site Vitrine',    badge: 'badge-sage' },
+  ecommerce:  { label: 'E-commerce',      badge: 'badge-pine' },
+  agent_ia:   { label: 'Agent IA',        badge: 'badge-warm' },
+  automation: { label: 'Automation',      badge: 'badge-green' },
 }
 
 export const PROJECT_STATUSES = [
@@ -77,6 +77,15 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   validation:     'Validation',
   livre:          'Livré',
   archive:        'Archivé',
+}
+
+export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
+  briefing:      'badge-neutral',
+  maquette:      'badge-sage',
+  developpement: 'badge-warm',
+  validation:    'badge-pine',
+  livre:         'badge-green',
+  archive:       'badge-neutral',
 }
 
 export const TASK_STATUSES = ['todo', 'in_progress', 'review', 'done'] as const
@@ -100,10 +109,10 @@ export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
 }
 
 export const TASK_PRIORITY_COLORS: Record<TaskPriority, string> = {
-  low:    'bg-gray-100 text-gray-600',
-  medium: 'bg-blue-100 text-blue-700',
-  high:   'bg-orange-100 text-orange-700',
-  urgent: 'bg-red-100 text-red-700',
+  low:    'badge-neutral',
+  medium: 'badge-sage',
+  high:   'badge-warm',
+  urgent: 'badge-rust',
 }
 
 export const INVOICE_STATUSES = [
@@ -127,12 +136,12 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
 }
 
 export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
-  brouillon:  'bg-gray-100 text-gray-600',
-  envoye:     'bg-blue-100 text-blue-700',
-  en_attente: 'bg-amber-100 text-amber-700',
-  paye:       'bg-green-100 text-green-700',
-  en_retard:  'bg-red-100 text-red-700',
-  annule:     'bg-gray-100 text-gray-500',
+  brouillon:  'badge-neutral',
+  envoye:     'badge-sage',
+  en_attente: 'badge-warm',
+  paye:       'badge-green',
+  en_retard:  'badge-rust',
+  annule:     'badge-neutral',
 }
 
 export const ROLE_LABELS: Record<string, string> = {
@@ -145,10 +154,10 @@ export const ROLE_LABELS: Record<string, string> = {
 
 export const ROLE_COLORS: Record<string, string> = {
   admin:              'bg-fourmiliance-mid text-white',
-  sous_traitant:      'bg-blue-500 text-white',
-  client:             'bg-sky-500 text-white',
-  membre_association: 'bg-fourmiliance-ocre text-white',
-  incube:             'bg-purple-500 text-white',
+  sous_traitant:      'bg-fourmiliance-forest text-white',
+  client:             'bg-fourmiliance-ocre text-white',
+  membre_association: 'bg-fourmiliance-light text-white',
+  incube:             'bg-fourmiliance-deep text-white',
 }
 
 export const FUND_OBJECTIVE = 50_000

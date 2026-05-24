@@ -24,3 +24,5 @@ dist-ssr/
 # Misc
 .DS_Store
 *.local
+
+.vercel

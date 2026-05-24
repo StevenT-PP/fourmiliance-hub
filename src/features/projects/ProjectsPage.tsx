@@ -12,6 +12,7 @@ import {
   SERVICE_TYPES,
 } from '../../lib/constants'
 import { formatCurrency } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 type StatusFilter = 'all' | 'en_cours' | 'livre' | 'archive'
 
@@ -49,6 +50,7 @@ export default function ProjectsPage() {
   const navigate = useNavigate()
   const { state } = useLocation()
   const queryClient = useQueryClient()
+  const { show: showToast } = useToast()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [typeFilter, setTypeFilter]     = useState<ServiceType | ''>('')
   const [search, setSearch]             = useState('')
@@ -132,6 +134,8 @@ export default function ProjectsPage() {
     setSaving(false)
     if (error) { setSaveError(error.message); return }
     queryClient.invalidateQueries({ queryKey: ['projects'] })
+    queryClient.invalidateQueries({ queryKey: ['projects-count-active'] })
+    showToast(`Projet créé : ${form.name.trim()}`)
     setShowModal(false)
     setForm(emptyForm)
   }

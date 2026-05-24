@@ -4,6 +4,7 @@ import { Upload, Download, Trash2, FileText, Image, Archive } from 'lucide-react
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
 import { formatRelativeTime } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ function formatSize(bytes: number): string {
 export default function FileUpload({ projectId }: { projectId: string }) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { show: showToast } = useToast()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [dragging, setDragging]   = useState(false)
@@ -109,6 +111,7 @@ export default function FileUpload({ projectId }: { projectId: string }) {
     setUploading(false)
     setProgress(0)
     void queryClient.invalidateQueries({ queryKey: ['storage-files', projectId] })
+    showToast(`Fichier uploadé : ${file.name}`)
   }
 
   async function downloadFile(fileName: string) {
@@ -120,8 +123,12 @@ export default function FileUpload({ projectId }: { projectId: string }) {
   }
 
   async function deleteFile(fileName: string) {
-    await supabase.storage.from(BUCKET).remove([`${projectId}/${fileName}`])
+    const displayName = fileName.replace(/^\d+_/, '')
+    if (!window.confirm(`Supprimer le fichier "${displayName}" ?`)) return
+    const { error } = await supabase.storage.from(BUCKET).remove([`${projectId}/${fileName}`])
+    if (error) { showToast('Erreur lors de la suppression', 'error'); return }
     void queryClient.invalidateQueries({ queryKey: ['storage-files', projectId] })
+    showToast(`Fichier supprimé : ${displayName}`)
   }
 
   return (
@@ -196,17 +203,17 @@ export default function FileUpload({ projectId }: { projectId: string }) {
                   </div>
                   <button
                     onClick={() => void downloadFile(f.name)}
-                    className="text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
-                    title="Télécharger"
+                    aria-label={`Télécharger ${displayName}`}
+                    className="text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => void deleteFile(f.name)}
-                    className="text-[#9A9A9A] hover:text-red-500 transition-colors"
-                    title="Supprimer"
+                    aria-label={`Supprimer ${displayName}`}
+                    className="text-[#9A9A9A] hover:text-red-500 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               )

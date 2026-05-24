@@ -5,12 +5,14 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
 import type { Message } from '../../types'
 import { formatDateTime, getInitials } from '../../lib/utils'
+import { useToast } from '../../hooks/useToast'
 
 // ─── Composant principal ─────────────────────────────────────────────────────
 
 export default function Messaging({ projectId }: { projectId: string }) {
   const { user, profile } = useAuth()
   const queryClient = useQueryClient()
+  const { show: showToast } = useToast()
   const bottomRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
@@ -61,13 +63,17 @@ export default function Messaging({ projectId }: { projectId: string }) {
     const text = content.trim()
     if (!text || !user) return
     setSending(true)
-    setContent('')
-    await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       project_id: projectId,
       sender_id:  user.id,
       content:    text,
     })
     setSending(false)
+    if (error) {
+      showToast("Erreur lors de l'envoi du message", 'error')
+    } else {
+      setContent('')
+    }
   }
 
   const isAgency = (role: string | undefined) =>

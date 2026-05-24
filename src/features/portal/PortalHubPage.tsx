@@ -14,6 +14,7 @@ interface PortalProject {
   client_id: string
   client: { id: string; full_name: string } | null
   contact: { id: string; company: string; contact_name: string } | null
+  tasks: { status: string }[]
 }
 
 export default function PortalHubPage() {
@@ -24,7 +25,7 @@ export default function PortalHubPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, status, progress, client_id, client:client_id(id, full_name), contact:contact_id(id, company, contact_name)')
+        .select('id, name, status, progress, client_id, client:client_id(id, full_name), contact:contact_id(id, company, contact_name), tasks(status)')
         .not('client_id', 'is', null)
         .order('updated_at', { ascending: false })
       if (error) throw error
@@ -96,25 +97,32 @@ export default function PortalHubPage() {
               )}
 
               {/* Progress */}
-              <div className="mb-4">
-                <div className="flex justify-between text-xs text-fourmiliance-ghost mb-1">
-                  <span>Progression</span>
-                  <span className="font-medium text-fourmiliance-forest">{p.progress}%</span>
-                </div>
-                <div
-                  role="progressbar"
-                  aria-valuenow={p.progress}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`Progression : ${p.progress}%`}
-                  className="h-1.5 bg-fourmiliance-track rounded-full overflow-hidden"
-                >
-                  <div
-                    className="h-full bg-fourmiliance-mid rounded-full transition-all"
-                    style={{ width: `${p.progress}%` }}
-                  />
-                </div>
-              </div>
+              {(() => {
+                const progress = p.tasks?.length > 0
+                  ? Math.round(p.tasks.filter(t => t.status === 'done').length / p.tasks.length * 100)
+                  : (p.progress ?? 0)
+                return (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs text-fourmiliance-ghost mb-1">
+                      <span>Progression</span>
+                      <span className="font-medium text-fourmiliance-forest">{progress}%</span>
+                    </div>
+                    <div
+                      role="progressbar"
+                      aria-valuenow={progress}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`Progression : ${progress}%`}
+                      className="h-1.5 bg-fourmiliance-track rounded-full overflow-hidden"
+                    >
+                      <div
+                        className="h-full bg-fourmiliance-mid rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Actions */}
               <div className="flex gap-2">

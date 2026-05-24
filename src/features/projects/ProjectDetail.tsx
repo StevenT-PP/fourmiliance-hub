@@ -638,6 +638,7 @@ function TaskGroup({
   projectId: string
   onRefresh: () => void
 }) {
+  const { show: showToast } = useToast()
   const [quickTitle, setQuickTitle] = useState('')
   const [adding, setAdding]         = useState(false)
 
@@ -645,14 +646,22 @@ function TaskGroup({
     e.preventDefault()
     if (!quickTitle.trim()) return
     setAdding(true)
-    await supabase.from('tasks').insert({
+    const { error } = await supabase.from('tasks').insert({
       project_id: projectId,
       title:      quickTitle.trim(),
       status:     groupStatus,
       priority:   'medium',
     })
     setAdding(false)
+    if (error) { showToast('Erreur lors de la création', 'error'); return }
     setQuickTitle('')
+    onRefresh()
+  }
+
+  async function toggleDone(task: Task) {
+    const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done'
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', task.id)
+    if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
     onRefresh()
   }
 
@@ -671,11 +680,7 @@ function TaskGroup({
             expanded={expandedTasks.has(task.id)}
             onToggleExpand={() => onToggleExpand(task.id)}
             onSelect={() => onSelectTask(task)}
-            onToggleDone={() => {
-              const newStatus: TaskStatus = task.status === 'done' ? 'todo' : 'done'
-              supabase.from('tasks').update({ status: newStatus }).eq('id', task.id)
-                .then(() => onRefresh())
-            }}
+            onToggleDone={() => void toggleDone(task)}
           />
         ))}
         {tasks.length === 0 && (
@@ -810,7 +815,8 @@ function DeliverableSection({
   const { show: showToast } = useToast()
 
   async function validate(id: string, name: string) {
-    await supabase.from('deliverables').update({ status: 'valide' }).eq('id', id)
+    const { error } = await supabase.from('deliverables').update({ status: 'valide' }).eq('id', id)
+    if (error) { showToast('Erreur lors de la validation', 'error'); return }
     onRefresh()
     showToast(`Livrable validé : ${name}`)
   }

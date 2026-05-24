@@ -114,7 +114,7 @@ export default function AppLayout() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-4 space-y-6">
+      <nav aria-label="Navigation principale" className="flex-1 overflow-y-auto px-3 pb-4 space-y-6">
         {nav.map(({ section, items }) => (
           <div key={section}>
             <p className="text-[10px] font-semibold tracking-widest text-white/30 px-2 mb-1.5">
@@ -128,13 +128,14 @@ export default function AppLayout() {
                     onClick={() => setOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm transition-colors
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50
                        ${isActive
                          ? 'border-l-2 border-fourmiliance-ocre bg-fourmiliance-ocre/10 text-white pl-[6px]'
                          : 'text-white/60 hover:bg-white/5 hover:text-white/90'
                        }`
                     }
                   >
-                    <Icon size={16} className="flex-shrink-0" />
+                    <Icon size={16} className="flex-shrink-0" aria-hidden="true" />
                     {label}
                   </NavLink>
                 </li>

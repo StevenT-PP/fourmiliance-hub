@@ -17,11 +17,12 @@ const TeamPage        = lazy(() => import('./features/team/TeamPage'))
 const MyTasksPage     = lazy(() => import('./features/team/MyTasksPage'))
 const AssociationPage = lazy(() => import('./features/association/AssociationPage'))
 const IncubateurPage  = lazy(() => import('./features/incubateur/IncubateurPage'))
+const SettingsPage    = lazy(() => import('./features/settings/SettingsPage'))
 
 function PageLoader() {
   return (
     <div className="flex-1 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement de la page" />
     </div>
   )
 }
@@ -94,8 +95,8 @@ function AppRoutes() {
         <Route path="association"      element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
         <Route path="association/fonds" element={<Suspense fallback={<PageLoader />}><AssociationPage /></Suspense>} />
         <Route path="incubateur"       element={<Suspense fallback={<PageLoader />}><IncubateurPage /></Suspense>} />
-        <Route path="portal"           element={<Placeholder title="Portail Client — accès via /client/:projectId" />} />
-        <Route path="settings"         element={<Placeholder title="Paramètres" />} />
+        <Route path="portal"             element={<Placeholder title="Portail Client — accès via /client/:projectId" />} />
+        <Route path="settings"         element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 

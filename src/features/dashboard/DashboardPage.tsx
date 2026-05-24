@@ -347,24 +347,42 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {activity.map(log => (
-                <div key={log.id} className="flex gap-3">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <ActivityIcon entityType={log.entity_type} />
+              {activity.map(log => {
+                const path = !log.entity_id ? null
+                  : log.entity_type === 'contact' ? `/app/crm/${log.entity_id}`
+                  : log.entity_type === 'project' ? `/app/projects/${log.entity_id}`
+                  : log.entity_type === 'invoice' ? '/app/finance'
+                  : log.entity_type === 'task'    ? '/app/mes-taches'
+                  : null
+                const inner = (
+                  <>
+                    <div className="flex-shrink-0 mt-0.5">
+                      <ActivityIcon entityType={log.entity_type} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-fourmiliance-body leading-snug">
+                        <strong>{log.actor?.full_name ?? 'Système'}</strong>
+                        {' '}
+                        {ACTION_LABELS[log.action] ?? log.action.replace(/_/g, ' ')}
+                        {log.entity_label ? ` : ${log.entity_label}` : ''}
+                      </p>
+                      <p className="text-[10px] text-fourmiliance-ghost mt-0.5">
+                        {formatRelativeTime(log.created_at)}
+                      </p>
+                    </div>
+                  </>
+                )
+                return path ? (
+                  <Link key={log.id} to={path}
+                    className="flex gap-3 -mx-2 px-2 py-1 rounded-lg hover:bg-fourmiliance-surface transition-colors">
+                    {inner}
+                  </Link>
+                ) : (
+                  <div key={log.id} className="flex gap-3">
+                    {inner}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-fourmiliance-body leading-snug">
-                      <strong>{log.actor?.full_name ?? 'Système'}</strong>
-                      {' '}
-                      {ACTION_LABELS[log.action] ?? log.action.replace(/_/g, ' ')}
-                      {log.entity_label ? ` : ${log.entity_label}` : ''}
-                    </p>
-                    <p className="text-[10px] text-fourmiliance-ghost mt-0.5">
-                      {formatRelativeTime(log.created_at)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal } from 'lucide-react'
+import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Invoice } from '../../types'
 import {
@@ -72,6 +72,15 @@ export default function InvoiceList() {
     if (statusFilter !== 'all' && effectiveStatus(inv) !== statusFilter) return false
     return true
   })
+
+  async function deleteInvoice(id: string, number: string) {
+    if (!window.confirm(`Supprimer le brouillon "${number}" ? Cette action est irréversible.`)) return
+    const { error } = await supabase.from('invoices').delete().eq('id', id)
+    if (error) { showToast('Erreur lors de la suppression', 'error'); return }
+    qc.invalidateQueries({ queryKey: ['invoices'] })
+    qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
+    showToast(`Brouillon ${number} supprimé`)
+  }
 
   async function changeStatus(id: string, status: InvoiceStatus) {
     const { error } = await supabase
@@ -224,6 +233,17 @@ export default function InvoiceList() {
                             className="p-2 rounded hover:bg-fourmiliance-surface text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                           >
                             <Send className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        )}
+
+                        {/* Supprimer brouillon */}
+                        {inv.status === 'brouillon' && (
+                          <button
+                            aria-label={`Supprimer le brouillon ${inv.number}`}
+                            onClick={() => deleteInvoice(inv.id, inv.number)}
+                            className="p-2 rounded hover:bg-fourmiliance-rust/10 text-fourmiliance-ghost hover:text-fourmiliance-rust transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                          >
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         )}
 

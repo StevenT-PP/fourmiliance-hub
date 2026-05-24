@@ -48,6 +48,7 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
   const [form,    setForm]    = useState<FormData>(EMPTY)
   const [errors,  setErrors]  = useState<Partial<Record<keyof FormData, string>>>({})
   const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     if (contact) {
@@ -101,6 +102,7 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
     e.preventDefault()
     if (!validate()) return
     setLoading(true)
+    setSubmitError(null)
 
     const payload = {
       company:         form.company.trim(),
@@ -123,7 +125,11 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
       : await supabase.from('contacts').insert(payload)
 
     setLoading(false)
-    if (!error) onSuccess()
+    if (error) {
+      setSubmitError(error.message ?? 'Erreur lors de la sauvegarde.')
+    } else {
+      onSuccess()
+    }
   }
 
   return (
@@ -320,7 +326,11 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-fourmiliance-border flex-shrink-0">
+          <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-fourmiliance-border flex-shrink-0">
+            {submitError && (
+              <p role="alert" className="text-xs text-fourmiliance-rust flex-1">{submitError}</p>
+            )}
+            <div className="flex gap-3 ml-auto">
             <button
               type="button"
               onClick={onClose}
@@ -338,6 +348,7 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
               )}
               {isEditing ? 'Enregistrer les modifications' : 'Créer le contact'}
             </button>
+            </div>
           </div>
         </form>
       </div>

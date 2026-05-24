@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Bell, CheckCheck, ArrowRight, User, FolderKanban,
   Receipt, CheckSquare, Upload, FileText,
@@ -23,12 +24,29 @@ function actionInfo(action: string) {
   return ACTION_MAP[action] ?? { label: action.replace(/_/g, ' '), IconEl: Bell }
 }
 
-function NotifItem({ notif, isNew }: { notif: ActivityLog; isNew: boolean }) {
+function navPath(notif: ActivityLog): string | null {
+  if (!notif.entity_id) return null
+  switch (notif.entity_type) {
+    case 'contact': return `/app/crm/${notif.entity_id}`
+    case 'project': return `/app/projects/${notif.entity_id}`
+    case 'invoice': return '/app/finance'
+    case 'task':    return '/app/mes-taches'
+    default:        return null
+  }
+}
+
+function NotifItem({ notif, isNew, onNavigate }: { notif: ActivityLog; isNew: boolean; onNavigate: (path: string) => void }) {
   const { label, IconEl } = actionInfo(notif.action)
+  const path = navPath(notif)
   return (
     <li
       className={`flex gap-3 px-4 py-3 hover:bg-fourmiliance-cream/60 transition-colors
-                  ${isNew ? 'bg-fourmiliance-light/40' : ''}`}
+                  ${isNew ? 'bg-fourmiliance-success-bg/20' : ''}
+                  ${path ? 'cursor-pointer' : ''}`}
+      onClick={path ? () => onNavigate(path) : undefined}
+      role={path ? 'button' : undefined}
+      tabIndex={path ? 0 : undefined}
+      onKeyDown={path ? (e) => { if (e.key === 'Enter' || e.key === ' ') onNavigate(path) } : undefined}
     >
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5
                        ${isNew ? 'bg-fourmiliance-mid/20 text-fourmiliance-mid' : 'bg-gray-100 text-fourmiliance-ghost'}`}>
@@ -67,7 +85,14 @@ interface Props {
 
 export default function NotificationDropdown({ open, onClose, anchorRef }: Props) {
   const { notifications, unreadCount, markAllRead, lastSeen } = useNotifications()
+  const navigate = useNavigate()
   const panelRef = useRef<HTMLDivElement>(null)
+
+  function handleNavigate(path: string) {
+    markAllRead()
+    onClose()
+    navigate(path)
+  }
 
   // Click outside to close
   useEffect(() => {
@@ -143,6 +168,7 @@ export default function NotificationDropdown({ open, onClose, anchorRef }: Props
               key={notif.id}
               notif={notif}
               isNew={notif.created_at > lastSeen}
+              onNavigate={handleNavigate}
             />
           ))}
         </ul>

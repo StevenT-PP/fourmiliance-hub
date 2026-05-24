@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
+import { useToast } from '../../hooks/useToast'
 import type { FundTransaction } from '../../types'
 import { FUND_OBJECTIVE, FUND_MILESTONES } from '../../lib/constants'
 import { formatCurrency, formatDate } from '../../lib/utils'
@@ -174,6 +175,7 @@ export default function FundTracker({ compact = false }: { compact?: boolean }) 
           }}
         />
       )}
+
     </div>
   )
 }
@@ -189,6 +191,7 @@ function VersementModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { show: showToast } = useToast()
   const [form, setForm] = useState({
     amount:      '',
     direction:   'versement' as 'versement' | 'retrait',
@@ -198,11 +201,19 @@ function VersementModal({
   })
   const [saving, setSaving] = useState(false)
 
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!form.amount) return
     setSaving(true)
-    await supabase.from('fund_transactions').insert({
+    const { error } = await supabase.from('fund_transactions').insert({
       amount:      parseFloat(form.amount),
       direction:   form.direction,
       description: form.description || null,
@@ -211,16 +222,22 @@ function VersementModal({
       created_by:  userId,
     })
     setSaving(false)
-    onSaved()
+    if (error) {
+      showToast("Erreur lors de l'enregistrement", 'error')
+    } else {
+      showToast(form.direction === 'versement' ? 'Versement enregistré' : 'Retrait enregistré')
+      onSaved()
+    }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="versement-title"
         className="bg-white rounded-2xl shadow-xl w-full max-w-md"
+        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
           <h3 id="versement-title" className="font-heading text-base text-fourmiliance-forest">

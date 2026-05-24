@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { Profile, Task } from '../../types'
 import { ROLE_LABELS, ROLE_COLORS, TASK_PRIORITY_COLORS, TASK_PRIORITY_LABELS } from '../../lib/constants'
@@ -162,7 +163,14 @@ export default function TeamPage() {
                         {task.title}
                       </td>
                       <td className="px-2 py-2.5 text-xs text-fourmiliance-muted truncate max-w-[120px]">
-                        {(task as TaskWithProject).project?.name ?? '—'}
+                        {(task as TaskWithProject).project
+                          ? <Link
+                              to={`/app/projects/${(task as TaskWithProject).project!.id}`}
+                              className="hover:text-fourmiliance-mid transition-colors"
+                            >
+                              {(task as TaskWithProject).project!.name}
+                            </Link>
+                          : '—'}
                       </td>
                       <td className="px-2 py-2.5 text-xs text-fourmiliance-muted whitespace-nowrap">
                         {task.due_date ? formatDate(task.due_date) : '—'}

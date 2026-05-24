@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Invoice } from '../../types'
 import {
@@ -266,6 +266,21 @@ export default function InvoiceList() {
                             className="p-2 rounded hover:bg-fourmiliance-success-bg text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                           >
                             <CheckCircle className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        )}
+
+                        {/* Annuler */}
+                        {(inv.status === 'envoye' || inv.status === 'en_attente' || eff === 'en_retard') && (
+                          <button
+                            aria-label={`Annuler ${inv.number}`}
+                            onClick={() => {
+                              if (window.confirm(`Annuler le document "${inv.number}" ? Cette action est irréversible.`)) {
+                                void changeStatus(inv.id, 'annule')
+                              }
+                            }}
+                            className="p-2 rounded hover:bg-fourmiliance-rust/10 text-fourmiliance-ghost hover:text-fourmiliance-rust transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                          >
+                            <XCircle className="w-4 h-4" aria-hidden="true" />
                           </button>
                         )}
 

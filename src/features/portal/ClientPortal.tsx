@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Download, MessageSquare } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth.tsx'
+import { useToast } from '../../hooks/useToast'
 import type { Deliverable } from '../../types'
 import type { ProjectStatus } from '../../lib/constants'
 import { formatDate, formatCurrency } from '../../lib/utils'
@@ -53,6 +54,7 @@ export default function ClientPortal() {
   const { projectId } = useParams<{ projectId: string }>()
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { show: showToast } = useToast()
 
   // Fetch projet — queryKey partagé avec ClientLayout (TanStack déduplique)
   const { data: project, isLoading } = useQuery({
@@ -103,24 +105,29 @@ export default function ClientPortal() {
     : (project?.progress ?? 0)
 
   async function validateDeliverable(deliverableId: string) {
-    await supabase
+    const { error } = await supabase
       .from('deliverables')
       .update({ status: 'valide' })
       .eq('id', deliverableId)
+    if (error) { showToast('Erreur lors de la validation', 'error'); return }
+    showToast('Livrable validé')
     void queryClient.invalidateQueries({ queryKey: ['deliverables', projectId] })
   }
 
   async function requestModification(deliverableId: string, deliverableName: string) {
     if (!user || !projectId) return
-    await supabase.from('messages').insert({
+    const { error: msgError } = await supabase.from('messages').insert({
       project_id: projectId,
       sender_id: user.id,
       content: `Demande de modification pour le livrable : "${deliverableName}"`,
     })
-    await supabase
+    if (msgError) { showToast("Erreur lors de l'envoi du message", 'error'); return }
+    const { error } = await supabase
       .from('deliverables')
       .update({ status: 'refuse' })
       .eq('id', deliverableId)
+    if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
+    showToast('Demande de modification envoyée')
     void queryClient.invalidateQueries({ queryKey: ['deliverables', projectId] })
   }
 

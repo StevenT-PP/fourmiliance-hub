@@ -7,15 +7,50 @@
     <meta name="theme-color" content="#0F2008" />
     <meta name="description" content="Fourmiliance Hub — Plateforme de gestion agence & association" />
     <title>Fourmiliance Hub</title>
+
+    <!-- Preconnect : Supabase + Google Fonts -->
+    <link rel="preconnect" href="https://xkmqayluwjqktlsekhtu.supabase.co" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Spinner HTML natif (visible avant que React monte) -->
+    <style>
+      #root-loader {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #F5F0E8;
+      }
+      #root-loader svg {
+        width: 36px; height: 36px;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      #root:not(:empty) + #root-loader,
+      #root-loader.hidden { display: none; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="root-loader" aria-label="Chargement…" role="status">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="15" stroke="#D4C5A9" stroke-width="3"/>
+        <path d="M18 3 A15 15 0 0 1 33 18" stroke="#2D5A1B" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <script>
+      // Masquer le loader dès que React prend la main
+      new MutationObserver(function(_, obs) {
+        var root = document.getElementById('root');
+        if (root && root.firstChild) {
+          document.getElementById('root-loader').classList.add('hidden');
+          obs.disconnect();
+        }
+      }).observe(document.getElementById('root'), { childList: true });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

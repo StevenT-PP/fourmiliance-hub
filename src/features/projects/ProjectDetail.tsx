@@ -303,6 +303,13 @@ export default function ProjectDetail() {
                   />
                 </div>
               </div>
+
+              {/* Description */}
+              {project.description && (
+                <p className="text-sm text-fourmiliance-tertiary mt-3 leading-relaxed border-t border-fourmiliance-track pt-3">
+                  {project.description}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -511,6 +518,17 @@ function EditHeaderForm({
             onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
+          <textarea
+            value={form.description}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            rows={2}
+            placeholder="Contexte, objectifs…"
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm resize-none
+                       focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
+          />
         </div>
         <div className="col-span-2">
           <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">

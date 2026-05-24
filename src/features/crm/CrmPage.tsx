@@ -94,14 +94,15 @@ export default function CrmPage() {
       {/* Barre de recherche + filtres */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">
         {/* Recherche */}
-        <div className="flex items-center gap-2 bg-white border border-[#E4DDD4] rounded-lg px-3 py-2 flex-1 min-w-[200px]">
-          <Search size={14} className="text-[#9A9A9A] flex-shrink-0" />
+        <div className="flex items-center gap-2 bg-white border border-fourmiliance-border rounded-lg px-3 py-2 flex-1 min-w-[200px] min-h-[44px]">
+          <Search size={14} className="text-fourmiliance-ghost flex-shrink-0" aria-hidden="true" />
           <input
-            type="text"
+            type="search"
             placeholder="Rechercher un prospect, une entreprise…"
             value={filters.search}
             onChange={e => setFilters(f => ({ ...f, search: e.target.value }))}
-            className="border-none outline-none text-sm text-[#1A1A1A] bg-transparent w-full placeholder:text-[#9A9A9A]"
+            aria-label="Rechercher un contact"
+            className="border-none outline-none text-sm text-fourmiliance-ink bg-transparent w-full placeholder:text-fourmiliance-ghost"
           />
         </div>
 
@@ -109,7 +110,8 @@ export default function CrmPage() {
         <select
           value={filters.service}
           onChange={e => setFilters(f => ({ ...f, service: e.target.value as ServiceType | '' }))}
-          className="bg-white border border-[#E4DDD4] rounded-lg px-3 py-2 text-sm text-[#5A5A5A] cursor-pointer outline-none"
+          aria-label="Filtrer par service"
+          className="bg-white border border-fourmiliance-border rounded-lg px-3 py-2 text-sm text-fourmiliance-tertiary cursor-pointer outline-none min-h-[44px]"
         >
           <option value="">Tous les services</option>
           {Object.entries(SERVICE_LABELS).map(([k, { label }]) => (
@@ -121,7 +123,8 @@ export default function CrmPage() {
         <select
           value={filters.assigned}
           onChange={e => setFilters(f => ({ ...f, assigned: e.target.value }))}
-          className="bg-white border border-[#E4DDD4] rounded-lg px-3 py-2 text-sm text-[#5A5A5A] cursor-pointer outline-none"
+          aria-label="Filtrer par membre"
+          className="bg-white border border-fourmiliance-border rounded-lg px-3 py-2 text-sm text-fourmiliance-tertiary cursor-pointer outline-none min-h-[44px]"
         >
           <option value="">Tous les membres</option>
           {teamMembers.map(m => (
@@ -134,7 +137,7 @@ export default function CrmPage() {
           <select
             value={filters.stage}
             onChange={e => setFilters(f => ({ ...f, stage: e.target.value as PipelineStage | '' }))}
-            className="bg-white border border-[#E4DDD4] rounded-lg px-3 py-2 text-sm text-[#5A5A5A] cursor-pointer outline-none"
+            className="bg-white border border-fourmiliance-border rounded-lg px-3 py-2 text-sm text-fourmiliance-tertiary cursor-pointer outline-none min-h-[44px]"
           >
             <option value="">Toutes les étapes</option>
             {PIPELINE_STAGES.map(s => (
@@ -144,15 +147,15 @@ export default function CrmPage() {
         )}
 
         {/* Toggle Kanban / Liste */}
-        <div className="flex items-center gap-1 bg-white border border-[#E4DDD4] rounded-lg p-1" role="group" aria-label="Mode d'affichage">
+        <div className="flex items-center gap-1 bg-white border border-fourmiliance-border rounded-lg p-1" role="group" aria-label="Mode d'affichage">
           <button
             onClick={() => switchView('kanban')}
             aria-label="Vue Kanban"
             aria-pressed={view === 'kanban'}
-            className={`p-2 rounded transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
               view === 'kanban'
-                ? 'bg-fourmiliance-cream-dark text-[#1A1A1A]'
-                : 'text-[#9A9A9A] hover:text-[#5A5A5A]'
+                ? 'bg-fourmiliance-cream-dark text-fourmiliance-ink'
+                : 'text-fourmiliance-ghost hover:text-fourmiliance-tertiary'
             }`}
           >
             <LayoutGrid size={15} aria-hidden="true" />
@@ -161,10 +164,10 @@ export default function CrmPage() {
             onClick={() => switchView('liste')}
             aria-label="Vue liste"
             aria-pressed={view === 'liste'}
-            className={`p-2 rounded transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+            className={`p-2 rounded transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
               view === 'liste'
-                ? 'bg-fourmiliance-cream-dark text-[#1A1A1A]'
-                : 'text-[#9A9A9A] hover:text-[#5A5A5A]'
+                ? 'bg-fourmiliance-cream-dark text-fourmiliance-ink'
+                : 'text-fourmiliance-ghost hover:text-fourmiliance-tertiary'
             }`}
           >
             <List size={15} aria-hidden="true" />
@@ -173,7 +176,7 @@ export default function CrmPage() {
 
         <button
           onClick={openCreate}
-          className="flex items-center gap-1.5 bg-fourmiliance-mid text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-fourmiliance-forest transition-colors"
+          className="flex items-center gap-1.5 bg-fourmiliance-mid text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-fourmiliance-forest transition-colors min-h-[44px]"
         >
           <Plus size={14} />
           Nouveau contact
@@ -183,7 +186,7 @@ export default function CrmPage() {
       {/* Chargement */}
       {isLoading && (
         <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+          <div className="spinner" role="status" aria-label="Chargement des contacts" />
         </div>
       )}
 
@@ -224,7 +227,7 @@ function ListeContacts({
 }) {
   const navigate = useNavigate()
   return (
-    <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card overflow-hidden">
+    <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -232,7 +235,7 @@ function ListeContacts({
               {['Entreprise', 'Contact', 'Service', 'Étape', 'Assigné à', 'Valeur', ''].map(h => (
                 <th
                   key={h}
-                  className="text-left text-[11px] font-semibold text-[#9A9A9A] uppercase tracking-[.6px] px-3.5 py-2.5 border-b-2 border-[#E4DDD4]"
+                  className="text-left text-[11px] font-semibold text-fourmiliance-ghost uppercase tracking-[.6px] px-3.5 py-2.5 border-b-2 border-fourmiliance-border"
                 >
                   {h}
                 </th>
@@ -244,56 +247,54 @@ function ListeContacts({
               <tr>
                 <td colSpan={7} className="text-center py-12">
                   <div className="flex flex-col items-center gap-2">
-                    <Users className="w-8 h-8 text-[#C0B8B0]" aria-hidden="true" />
-                    <p className="text-sm text-[#9A9A9A]">Aucun contact trouvé</p>
+                    <Users className="w-8 h-8 text-fourmiliance-disabled" aria-hidden="true" />
+                    <p className="text-sm text-fourmiliance-ghost">Aucun contact trouvé</p>
                   </div>
                 </td>
               </tr>
             )}
             {contacts.map(c => (
               <tr key={c.id} className="hover:bg-fourmiliance-cream transition-colors">
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4] text-sm font-medium text-[#1A1A1A]">
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border text-sm font-medium text-fourmiliance-ink">
                   {c.company}
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4]">
-                  <div className="text-sm text-[#1A1A1A]">{c.contact_name}</div>
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border">
+                  <div className="text-sm text-fourmiliance-ink">{c.contact_name}</div>
                   {c.email && (
-                    <div className="text-[11px] text-[#9A9A9A]">{c.email}</div>
+                    <div className="text-[11px] text-fourmiliance-ghost">{c.email}</div>
                   )}
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4]">
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border">
                   {c.service_type && (
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${SERVICE_LABELS[c.service_type].badge}`}
-                    >
+                    <span className={`badge ${SERVICE_LABELS[c.service_type].badge}`}>
                       {SERVICE_LABELS[c.service_type].label}
                     </span>
                   )}
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4]">
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${PIPELINE_COLORS[c.pipeline_stage]}`}
-                  >
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border">
+                  <span className={`badge ${PIPELINE_COLORS[c.pipeline_stage]}`}>
                     {PIPELINE_LABELS[c.pipeline_stage]}
                   </span>
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4] text-sm text-[#5A5A5A]">
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border text-sm text-fourmiliance-tertiary">
                   {c.assignee?.full_name ?? '—'}
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4] text-sm text-[#5A5A5A]">
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border text-sm text-fourmiliance-tertiary">
                   {c.estimated_value != null ? formatCurrency(c.estimated_value) : '—'}
                 </td>
-                <td className="px-3.5 py-3 border-b border-[#E4DDD4]">
+                <td className="px-3.5 py-3 border-b border-fourmiliance-border">
                   <div className="flex gap-1.5">
                     <button
                       onClick={() => navigate(`/app/crm/${c.id}`)}
-                      className="text-xs text-fourmiliance-mid hover:text-fourmiliance-forest border border-fourmiliance-mid/30 rounded px-2 py-1 hover:bg-fourmiliance-cream-dark transition-colors"
+                      aria-label={`Voir la fiche de ${c.company}`}
+                      className="text-xs text-fourmiliance-mid hover:text-fourmiliance-forest border border-fourmiliance-mid/30 rounded px-2 py-1 hover:bg-fourmiliance-cream-dark transition-colors min-h-[36px]"
                     >
                       Voir
                     </button>
                     <button
                       onClick={() => onEditContact(c)}
-                      className="text-xs text-[#5A5A5A] hover:text-[#1A1A1A] border border-[#E4DDD4] rounded px-2 py-1 hover:bg-fourmiliance-cream-dark transition-colors"
+                      aria-label={`Modifier ${c.company}`}
+                      className="text-xs text-fourmiliance-tertiary hover:text-fourmiliance-ink border border-fourmiliance-border rounded px-2 py-1 hover:bg-fourmiliance-cream-dark transition-colors min-h-[36px]"
                     >
                       Modifier
                     </button>
@@ -306,7 +307,7 @@ function ListeContacts({
       </div>
 
       {contacts.length > 0 && (
-        <div className="px-4 py-2.5 border-t border-[#E4DDD4] text-xs text-[#9A9A9A]">
+        <div className="px-4 py-2.5 border-t border-fourmiliance-border text-xs text-fourmiliance-ghost">
           {contacts.length} contact{contacts.length > 1 ? 's' : ''}
         </div>
       )}

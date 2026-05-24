@@ -27,7 +27,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #E4DDD4;
+    background: #E0DAD0;
     border-radius: 3px;
   }
 
@@ -37,31 +37,90 @@
 }
 
 @layer components {
+  /* ── Buttons ──────────────────────────────────────────────────────── */
   .btn-primary {
-    @apply bg-fourmiliance-mid hover:bg-fourmiliance-light text-white font-medium px-4 py-2 rounded-ui transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-fourmiliance-mid hover:bg-fourmiliance-forest text-white font-medium
+           px-4 py-2.5 rounded-ui transition-colors duration-150 min-h-[44px]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-fourmiliance-ocre hover:bg-fourmiliance-ocre-dark text-white font-medium px-4 py-2 rounded-ui transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-fourmiliance-ocre hover:bg-fourmiliance-ocre-dark text-white font-medium
+           px-4 py-2.5 rounded-ui transition-colors duration-150 min-h-[44px]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-ocre focus-visible:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply bg-transparent hover:bg-black/5 text-fourmiliance-mid font-medium px-4 py-2 rounded-ui transition-colors duration-150;
+    @apply bg-transparent hover:bg-black/5 text-fourmiliance-mid font-medium
+           px-4 py-2.5 rounded-ui transition-colors duration-150 min-h-[44px]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid focus-visible:ring-offset-2;
   }
 
+  /* ── Cards & surfaces ─────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-card shadow-card border border-[#E4DDD4] p-6;
+    @apply bg-white rounded-card shadow-card border border-fourmiliance-border p-6;
   }
 
+  /* ── Form elements ────────────────────────────────────────────────── */
   .input {
-    @apply w-full border border-[#E4DDD4] rounded-ui px-3 py-2 text-sm text-[#1A1A1A] bg-white placeholder-[#9A9A9A] focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30 focus:border-fourmiliance-mid transition-colors duration-150;
+    @apply w-full border border-fourmiliance-border rounded-ui px-3 py-2 text-sm
+           text-fourmiliance-ink bg-white placeholder-fourmiliance-ghost
+           focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30
+           focus:border-fourmiliance-mid transition-colors duration-150 min-h-[44px];
   }
 
   .label {
-    @apply block text-sm font-medium text-[#5A5A5A] mb-1;
+    @apply block text-sm font-medium text-fourmiliance-tertiary mb-1;
   }
 
+  /* ── Badges inline ────────────────────────────────────────────────── */
   .badge {
     @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* ── Badge couleurs (palette biotope) ────────────────────────────── */
+  /* Neutre : archivé, prospect, brouillon */
+  .badge-neutral  { background-color: #EDE8DF; color: #7A7A7A; }
+  /* Sage clair : contacté, maquette */
+  .badge-sage     { background-color: #E8F2E0; color: #4A7A2E; }
+  /* Vert : signé, payé, actif */
+  .badge-green    { background-color: #E0EDD8; color: #2D5A1B; }
+  /* Forêt foncé : en cours, développement, pine */
+  .badge-pine     { background-color: #D4E8CC; color: #1E4010; }
+  /* Chaud / ocre : devis, en attente, livré */
+  .badge-warm     { background-color: #F5EAD8; color: #9B6018; }
+  /* Rouille : perdu, en retard, annulé */
+  .badge-rust     { background-color: #F5E0DC; color: #8B2A20; }
+  /* Encre : défaut sombre */
+  .badge-ink      { background-color: #E8E4DC; color: #1A1A1A; }
+
+  /* ── Spinner ──────────────────────────────────────────────────────── */
+  .spinner {
+    @apply w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent
+           rounded-full animate-spin;
+  }
+
+  .spinner-sm {
+    @apply w-5 h-5 border-2 border-fourmiliance-mid border-t-transparent
+           rounded-full animate-spin;
+  }
+
+  /* ── Skip link (keyboard navigation) ─────────────────────────────── */
+  .skip-link {
+    @apply absolute -top-full left-4 z-[9999] bg-fourmiliance-forest text-white
+           px-4 py-2 rounded-b-lg text-sm font-medium transition-all
+           focus:top-0;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

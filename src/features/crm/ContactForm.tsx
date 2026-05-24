@@ -129,21 +129,27 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Fond */}
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
 
       {/* Modale */}
-      <div className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-form-title"
+        className="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+      >
         {/* En-tête */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E4DDD4] flex-shrink-0">
-          <h2 className="font-heading text-lg font-semibold text-fourmiliance-forest">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border flex-shrink-0">
+          <h2 id="contact-form-title" className="font-heading text-lg font-semibold text-fourmiliance-forest">
             {isEditing ? 'Modifier le contact' : 'Nouveau contact'}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-fourmiliance-cream-dark transition-colors"
+            aria-label="Fermer"
+            className="p-1.5 rounded-lg hover:bg-fourmiliance-cream-dark transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
-            <X size={18} className="text-[#5A5A5A]" />
+            <X size={18} className="text-fourmiliance-tertiary" aria-hidden="true" />
           </button>
         </div>
 
@@ -152,21 +158,25 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
           <div className="overflow-y-auto flex-1 p-6 space-y-4">
             {/* Entreprise + Nom contact */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Entreprise *" error={errors.company}>
+              <Field label="Entreprise *" error={errors.company} htmlFor="cf-company">
                 <input
+                  id="cf-company"
                   type="text"
                   value={form.company}
                   onChange={e => update('company', e.target.value)}
                   placeholder="Nom de l'entreprise"
+                  aria-required="true"
                   className={inputCls(!!errors.company)}
                 />
               </Field>
-              <Field label="Nom du contact *" error={errors.contact_name}>
+              <Field label="Nom du contact *" error={errors.contact_name} htmlFor="cf-contact-name">
                 <input
+                  id="cf-contact-name"
                   type="text"
                   value={form.contact_name}
                   onChange={e => update('contact_name', e.target.value)}
                   placeholder="Prénom Nom"
+                  aria-required="true"
                   className={inputCls(!!errors.contact_name)}
                 />
               </Field>
@@ -174,54 +184,64 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
 
             {/* Email + Téléphone */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Email">
+              <Field label="Email" htmlFor="cf-email">
                 <input
+                  id="cf-email"
                   type="email"
                   value={form.email}
                   onChange={e => update('email', e.target.value)}
                   placeholder="contact@exemple.fr"
+                  autoComplete="email"
                   className={inputCls(false)}
                 />
               </Field>
-              <Field label="Téléphone">
+              <Field label="Téléphone" htmlFor="cf-phone">
                 <input
+                  id="cf-phone"
                   type="tel"
                   value={form.phone}
                   onChange={e => update('phone', e.target.value)}
                   placeholder="06 12 34 56 78"
+                  autoComplete="tel"
                   className={inputCls(false)}
                 />
               </Field>
             </div>
 
             {/* Adresse */}
-            <Field label="Adresse">
+            <Field label="Adresse" htmlFor="cf-address">
               <input
+                id="cf-address"
                 type="text"
                 value={form.address}
                 onChange={e => update('address', e.target.value)}
                 placeholder="Numéro, rue…"
+                autoComplete="street-address"
                 className={inputCls(false)}
               />
             </Field>
 
             {/* Ville + Code postal */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Ville">
+              <Field label="Ville" htmlFor="cf-city">
                 <input
+                  id="cf-city"
                   type="text"
                   value={form.city}
                   onChange={e => update('city', e.target.value)}
                   placeholder="Perpignan"
+                  autoComplete="address-level2"
                   className={inputCls(false)}
                 />
               </Field>
-              <Field label="Code postal">
+              <Field label="Code postal" htmlFor="cf-postal">
                 <input
+                  id="cf-postal"
                   type="text"
                   value={form.postal_code}
                   onChange={e => update('postal_code', e.target.value)}
                   placeholder="66000"
+                  autoComplete="postal-code"
                   className={inputCls(false)}
                 />
               </Field>
@@ -229,10 +249,12 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
 
             {/* Service + Valeur */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Type de service *" error={errors.service_type}>
+              <Field label="Type de service *" error={errors.service_type} htmlFor="cf-service">
                 <select
+                  id="cf-service"
                   value={form.service_type}
                   onChange={e => update('service_type', e.target.value)}
+                  aria-required="true"
                   className={inputCls(!!errors.service_type)}
                 >
                   <option value="">— Choisir —</option>
@@ -241,8 +263,9 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
                   ))}
                 </select>
               </Field>
-              <Field label="Valeur estimée (€)">
+              <Field label="Valeur estimée (€)" htmlFor="cf-value">
                 <input
+                  id="cf-value"
                   type="number"
                   min="0"
                   step="50"
@@ -256,8 +279,9 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
 
             {/* Assigné à + Source */}
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Assigné à">
+              <Field label="Assigné à" htmlFor="cf-assigned">
                 <select
+                  id="cf-assigned"
                   value={form.assigned_to}
                   onChange={e => update('assigned_to', e.target.value)}
                   className={inputCls(false)}
@@ -268,8 +292,9 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
                   ))}
                 </select>
               </Field>
-              <Field label="Source">
+              <Field label="Source" htmlFor="cf-source">
                 <input
+                  id="cf-source"
                   type="text"
                   value={form.source}
                   onChange={e => update('source', e.target.value)}
@@ -280,8 +305,9 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
             </div>
 
             {/* Étape pipeline */}
-            <Field label="Étape pipeline">
+            <Field label="Étape pipeline" htmlFor="cf-pipeline">
               <select
+                id="cf-pipeline"
                 value={form.pipeline_stage}
                 onChange={e => update('pipeline_stage', e.target.value)}
                 className={inputCls(false)}
@@ -294,11 +320,11 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 px-6 py-4 border-t border-[#E4DDD4] flex-shrink-0">
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-fourmiliance-border flex-shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-[#5A5A5A] border border-[#E4DDD4] hover:bg-fourmiliance-cream-dark transition-colors"
+              className="px-4 py-2 rounded-lg text-sm text-fourmiliance-tertiary border border-fourmiliance-border hover:bg-fourmiliance-cream-dark transition-colors"
             >
               Annuler
             </button>
@@ -322,26 +348,28 @@ export default function ContactForm({ contact, onClose, onSuccess }: Props) {
 function Field({
   label,
   error,
+  htmlFor,
   children,
 }: {
   label:    string
   error?:   string
+  htmlFor?: string
   children: React.ReactNode
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-[#5A5A5A] mb-1">{label}</label>
+      <label htmlFor={htmlFor} className="block text-xs font-medium text-fourmiliance-tertiary mb-1">{label}</label>
       {children}
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      {error && <p role="alert" className="text-xs text-fourmiliance-rust mt-1">{error}</p>}
     </div>
   )
 }
 
 function inputCls(hasError: boolean): string {
   return [
-    'w-full px-3 py-2 rounded-lg text-sm text-[#1A1A1A] border outline-none transition-colors bg-white',
+    'w-full px-3 py-2 rounded-lg text-sm text-fourmiliance-ink border outline-none transition-colors bg-white',
     hasError
-      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-400'
-      : 'border-[#E4DDD4] focus:border-fourmiliance-mid focus:ring-1 focus:ring-fourmiliance-mid/30',
+      ? 'border-fourmiliance-rust focus:border-fourmiliance-rust focus:ring-1 focus:ring-fourmiliance-rust/30'
+      : 'border-fourmiliance-border focus:border-fourmiliance-mid focus:ring-1 focus:ring-fourmiliance-mid/30',
   ].join(' ')
 }

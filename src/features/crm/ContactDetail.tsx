@@ -21,10 +21,10 @@ import ContactForm from './ContactForm'
 type NoteType = 'note' | 'appel' | 'email' | 'rdv'
 
 const NOTE_TYPE_META: Record<NoteType, { label: string; icon: typeof Phone; color: string }> = {
-  note:  { label: 'Note',    icon: MessageSquare, color: 'text-[#5A5A5A]' },
-  appel: { label: 'Appel',   icon: PhoneCall,     color: 'text-orange-500' },
-  email: { label: 'Email',   icon: AtSign,         color: 'text-blue-500' },
-  rdv:   { label: 'RDV',     icon: CalendarDays,   color: 'text-purple-500' },
+  note:  { label: 'Note',    icon: MessageSquare, color: 'text-fourmiliance-tertiary' },
+  appel: { label: 'Appel',   icon: PhoneCall,     color: 'text-fourmiliance-ocre' },
+  email: { label: 'Email',   icon: AtSign,         color: 'text-fourmiliance-mid' },
+  rdv:   { label: 'RDV',     icon: CalendarDays,   color: 'text-fourmiliance-forest' },
 }
 
 export default function ContactDetail() {
@@ -157,14 +157,14 @@ export default function ContactDetail() {
   if (loadingContact) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement en cours" />
       </div>
     )
   }
 
   if (!contact) {
     return (
-      <div className="text-center py-20 text-[#9A9A9A]">Contact introuvable.</div>
+      <div className="text-center py-20 text-fourmiliance-ghost">Contact introuvable.</div>
     )
   }
 
@@ -178,30 +178,31 @@ export default function ContactDetail() {
       <div className="flex items-start gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="mt-1 p-1.5 rounded-lg hover:bg-fourmiliance-cream-dark text-[#9A9A9A] hover:text-[#1A1A1A] transition-colors"
+          aria-label="Retour"
+          className="mt-1 p-1.5 rounded-lg hover:bg-fourmiliance-cream-dark text-fourmiliance-ghost hover:text-fourmiliance-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} aria-hidden="true" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="font-heading text-2xl text-fourmiliance-forest truncate">
               {contact.company}
             </h1>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${PIPELINE_COLORS[contact.pipeline_stage]}`}>
+            <span className={`badge ${PIPELINE_COLORS[contact.pipeline_stage]}`}>
               {PIPELINE_LABELS[contact.pipeline_stage]}
             </span>
             {contact.service_type && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${SERVICE_LABELS[contact.service_type].badge}`}>
+              <span className={`badge ${SERVICE_LABELS[contact.service_type].badge}`}>
                 {SERVICE_LABELS[contact.service_type].label}
               </span>
             )}
           </div>
-          <p className="text-sm text-[#5A5A5A] mt-0.5">{contact.contact_name}</p>
+          <p className="text-sm text-fourmiliance-tertiary mt-0.5">{contact.contact_name}</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={() => setShowEditForm(true)}
-            className="flex items-center gap-1.5 border border-[#E4DDD4] bg-white text-[#5A5A5A] px-3 py-2 rounded-lg text-sm hover:bg-fourmiliance-cream-dark transition-colors"
+            className="flex items-center gap-1.5 border border-fourmiliance-border bg-white text-fourmiliance-tertiary px-3 py-2 rounded-lg text-sm hover:bg-fourmiliance-cream-dark transition-colors"
           >
             <Pencil size={13} />
             Modifier
@@ -221,8 +222,8 @@ export default function ContactDetail() {
         <div className="space-y-4">
 
           {/* Informations */}
-          <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4 space-y-3">
-            <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Informations</h2>
+          <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4 space-y-3">
+            <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider">Informations</h2>
             <InfoRow icon={User}       label={contact.contact_name} />
             {contact.email && (
               <InfoRow icon={Mail}     label={contact.email} href={`mailto:${contact.email}`} />
@@ -247,66 +248,72 @@ export default function ContactDetail() {
 
           {/* Valeur estimée */}
           {contact.estimated_value != null && (
-            <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4">
-              <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">Valeur estimée</h2>
+            <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4">
+              <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider mb-2">Valeur estimée</h2>
               <p className="text-2xl font-bold text-fourmiliance-forest">
                 {formatCurrency(contact.estimated_value)}
               </p>
-              <p className="text-xs text-[#9A9A9A] mt-0.5">Pipeline : {PIPELINE_LABELS[contact.pipeline_stage]}</p>
+              <p className="text-xs text-fourmiliance-ghost mt-0.5">Pipeline : {PIPELINE_LABELS[contact.pipeline_stage]}</p>
             </div>
           )}
 
           {/* Tâches */}
-          <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4">
-            <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-3">
+          <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4">
+            <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider mb-3">
               Tâches ({pendingTasks.length} en attente)
             </h2>
             <div className="space-y-1.5 mb-3">
               {tasks.length === 0 && (
-                <p className="text-xs text-[#9A9A9A]">Aucune tâche</p>
+                <p className="text-xs text-fourmiliance-ghost">Aucune tâche</p>
               )}
               {[...pendingTasks, ...doneTasks].map(task => (
                 <div key={task.id} className="flex items-start gap-2">
                   <button
                     onClick={() => toggleTask.mutate({ taskId: task.id, done: !task.done })}
-                    className="mt-0.5 flex-shrink-0 text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
+                    aria-label={task.done ? `Marquer "${task.title}" comme non terminé` : `Marquer "${task.title}" comme terminé`}
+                    aria-pressed={task.done}
+                    className="mt-0.5 flex-shrink-0 text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
                   >
                     {task.done
-                      ? <CheckSquare size={14} className="text-green-500" />
-                      : <Square size={14} />
+                      ? <CheckSquare size={14} className="text-fourmiliance-mid" aria-hidden="true" />
+                      : <Square size={14} aria-hidden="true" />
                     }
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-xs ${task.done ? 'line-through text-[#9A9A9A]' : 'text-[#1A1A1A]'}`}>
+                    <p className={`text-xs ${task.done ? 'line-through text-fourmiliance-ghost' : 'text-fourmiliance-ink'}`}>
                       {task.title}
                     </p>
                     {task.due_date && (
-                      <p className="text-[10px] text-[#9A9A9A]">{formatDate(task.due_date)}</p>
+                      <p className="text-[10px] text-fourmiliance-ghost">{formatDate(task.due_date)}</p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
             {/* Ajout rapide */}
-            <div className="border-t border-[#E4DDD4] pt-3 space-y-2">
+            <div className="border-t border-fourmiliance-border pt-3 space-y-2">
+              <label htmlFor="new-task-title" className="sr-only">Titre de la nouvelle tâche</label>
               <input
+                id="new-task-title"
                 type="text"
                 placeholder="Nouvelle tâche…"
                 value={newTaskTitle}
                 onChange={e => setNewTaskTitle(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addTask.mutate()}
-                className="w-full text-xs border border-[#E4DDD4] rounded px-2 py-1.5 outline-none focus:border-fourmiliance-mid"
+                className="w-full text-xs border border-fourmiliance-border rounded px-2 py-1.5 outline-none focus:border-fourmiliance-mid"
               />
+              <label htmlFor="new-task-due" className="sr-only">Date d'échéance</label>
               <input
+                id="new-task-due"
                 type="date"
                 value={newTaskDue}
                 onChange={e => setNewTaskDue(e.target.value)}
-                className="w-full text-xs border border-[#E4DDD4] rounded px-2 py-1.5 outline-none focus:border-fourmiliance-mid text-[#5A5A5A]"
+                className="w-full text-xs border border-fourmiliance-border rounded px-2 py-1.5 outline-none focus:border-fourmiliance-mid text-fourmiliance-tertiary"
               />
               <button
                 onClick={() => addTask.mutate()}
                 disabled={!newTaskTitle.trim() || addTask.isPending}
-                className="w-full flex items-center justify-center gap-1.5 bg-fourmiliance-cream text-[#5A5A5A] border border-[#E4DDD4] rounded px-2 py-1.5 text-xs hover:bg-fourmiliance-cream-dark disabled:opacity-40 transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 bg-fourmiliance-cream text-fourmiliance-tertiary border border-fourmiliance-border rounded px-2 py-1.5 text-xs hover:bg-fourmiliance-cream-dark disabled:opacity-40 transition-colors"
               >
                 <Plus size={11} />
                 Ajouter
@@ -316,8 +323,8 @@ export default function ContactDetail() {
 
           {/* Projets liés */}
           {projects.length > 0 && (
-            <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4">
-              <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-3">
+            <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4">
+              <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider mb-3">
                 Projets liés
               </h2>
               <div className="space-y-2.5">
@@ -329,25 +336,36 @@ export default function ContactDetail() {
                   return (
                     <div
                       key={project.id}
-                      className="border border-[#E4DDD4] rounded-lg p-3 cursor-pointer hover:bg-fourmiliance-cream transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      className="border border-fourmiliance-border rounded-lg p-3 cursor-pointer hover:bg-fourmiliance-cream transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid"
                       onClick={() => navigate(`/app/projects/${project.id}`)}
+                      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && navigate(`/app/projects/${project.id}`)}
+                      aria-label={`Ouvrir le projet ${project.name}`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-1.5">
                         <div className="flex items-center gap-1.5">
-                          <Briefcase size={12} className="text-[#9A9A9A] flex-shrink-0" />
-                          <p className="text-xs font-medium text-[#1A1A1A] leading-tight">{project.name}</p>
+                          <Briefcase size={12} className="text-fourmiliance-ghost flex-shrink-0" />
+                          <p className="text-xs font-medium text-fourmiliance-ink leading-tight">{project.name}</p>
                         </div>
-                        <span className="text-[10px] text-[#9A9A9A] flex-shrink-0">
+                        <span className="text-[10px] text-fourmiliance-ghost flex-shrink-0">
                           {PROJECT_STATUS_LABELS[project.status]}
                         </span>
                       </div>
-                      <div className="h-1.5 bg-[#E4DDD4] rounded-full overflow-hidden">
+                      <div
+                        role="progressbar"
+                        aria-valuenow={progress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`Progression : ${progress}%`}
+                        className="h-1.5 bg-fourmiliance-border rounded-full overflow-hidden"
+                      >
                         <div
                           className="h-full bg-fourmiliance-mid rounded-full transition-all"
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <p className="text-[10px] text-[#9A9A9A] mt-1">{progress}% terminé</p>
+                      <p className="text-[10px] text-fourmiliance-ghost mt-1">{progress}% terminé</p>
                     </div>
                   )
                 })}
@@ -360,8 +378,8 @@ export default function ContactDetail() {
         <div className="lg:col-span-2 space-y-4">
 
           {/* Ajouter une note */}
-          <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4">
-            <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-3">
+          <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4">
+            <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider mb-3">
               Ajouter une interaction
             </h2>
             <div className="flex gap-2 mb-3">
@@ -374,7 +392,7 @@ export default function ContactDetail() {
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition-colors ${
                       noteType === key
                         ? 'bg-fourmiliance-mid text-white border-fourmiliance-mid'
-                        : 'bg-white text-[#5A5A5A] border-[#E4DDD4] hover:bg-fourmiliance-cream-dark'
+                        : 'bg-white text-fourmiliance-tertiary border-fourmiliance-border hover:bg-fourmiliance-cream-dark'
                     }`}
                   >
                     <Icon size={12} />
@@ -388,7 +406,7 @@ export default function ContactDetail() {
               value={noteContent}
               onChange={e => setNoteContent(e.target.value)}
               rows={3}
-              className="w-full text-sm border border-[#E4DDD4] rounded-lg px-3 py-2 outline-none focus:border-fourmiliance-mid resize-none placeholder:text-[#9A9A9A]"
+              className="w-full text-sm border border-fourmiliance-border rounded-lg px-3 py-2 outline-none focus:border-fourmiliance-mid resize-none placeholder:text-fourmiliance-ghost"
             />
             <div className="flex justify-end mt-2">
               <button
@@ -403,12 +421,12 @@ export default function ContactDetail() {
           </div>
 
           {/* Historique */}
-          <div className="bg-white rounded-xl border border-[#E4DDD4] shadow-card p-4">
-            <h2 className="text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-3">
+          <div className="bg-white rounded-xl border border-fourmiliance-border shadow-card p-4">
+            <h2 className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wider mb-3">
               Historique ({notes.length})
             </h2>
             {notes.length === 0 && (
-              <p className="text-sm text-[#9A9A9A] text-center py-6">
+              <p className="text-sm text-fourmiliance-ghost text-center py-6">
                 Aucune interaction enregistrée
               </p>
             )}
@@ -419,7 +437,7 @@ export default function ContactDetail() {
                 return (
                   <div
                     key={note.id}
-                    className="flex gap-3 p-3 rounded-lg bg-fourmiliance-cream border border-[#E4DDD4]"
+                    className="flex gap-3 p-3 rounded-lg bg-fourmiliance-cream border border-fourmiliance-border"
                   >
                     <div className={`flex-shrink-0 mt-0.5 ${meta.color}`}>
                       <Icon size={15} />
@@ -434,14 +452,14 @@ export default function ContactDetail() {
                             <div className="w-4 h-4 rounded-full bg-fourmiliance-mid text-white text-[8px] font-bold flex items-center justify-center">
                               {getInitials(note.author.full_name ?? '?')}
                             </div>
-                            <span className="text-[10px] text-[#9A9A9A]">{note.author.full_name}</span>
+                            <span className="text-[10px] text-fourmiliance-ghost">{note.author.full_name}</span>
                           </div>
                         )}
-                        <span className="text-[10px] text-[#9A9A9A] ml-auto">
+                        <span className="text-[10px] text-fourmiliance-ghost ml-auto">
                           {formatDateTime(note.created_at)}
                         </span>
                       </div>
-                      <p className="text-sm text-[#1A1A1A] whitespace-pre-wrap">{note.content}</p>
+                      <p className="text-sm text-fourmiliance-ink whitespace-pre-wrap">{note.content}</p>
                     </div>
                   </div>
                 )
@@ -478,8 +496,8 @@ function InfoRow({
 }) {
   const content = (
     <div className="flex items-center gap-2">
-      <Icon size={13} className="text-[#9A9A9A] flex-shrink-0" />
-      <span className="text-sm text-[#1A1A1A] truncate">{label}</span>
+      <Icon size={13} className="text-fourmiliance-ghost flex-shrink-0" />
+      <span className="text-sm text-fourmiliance-ink truncate">{label}</span>
     </div>
   )
   if (href) {

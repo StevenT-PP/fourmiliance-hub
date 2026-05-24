@@ -147,7 +147,7 @@ export default function AppLayout() {
       {/* Footer utilisateur */}
       {profile && (
         <div className="px-3 pb-4">
-          <div className="border-t border-white/10 pt-4 flex items-center gap-2.5">
+          <div className="border-t border-white/10 pt-4 flex items-center gap-2.5 min-h-[44px]">
             <Initials name={profile.full_name} />
             <div className="min-w-0 flex-1">
               <p className="text-white text-xs font-medium truncate">{profile.full_name}</p>
@@ -155,10 +155,10 @@ export default function AppLayout() {
             </div>
             <button
               onClick={signOut}
-              title="Se déconnecter"
-              className="text-white/30 hover:text-white/70 transition flex-shrink-0"
+              aria-label="Se déconnecter"
+              className="text-white/30 hover:text-white/70 transition flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
@@ -170,6 +170,10 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen bg-fourmiliance-cream flex">
+      {/* Skip link */}
+      <a href="#main-content" className="skip-link">
+        Aller au contenu principal
+      </a>
 
       {/* Sidebar desktop */}
       <div className="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-[240px]">
@@ -178,7 +182,7 @@ export default function AppLayout() {
 
       {/* Sidebar mobile — overlay */}
       {open && (
-        <div className="fixed inset-0 z-40 flex md:hidden">
+        <div className="fixed inset-0 z-40 flex md:hidden" role="dialog" aria-modal="true" aria-label="Menu de navigation">
           <div
             className="fixed inset-0 bg-black/50"
             onClick={() => setOpen(false)}
@@ -194,11 +198,12 @@ export default function AppLayout() {
       <div className="flex flex-col flex-1 md:ml-[240px] min-h-screen">
 
         {/* Topbar */}
-        <header className="h-14 bg-white border-b border-[#E4DDD4] flex items-center gap-4 px-4 flex-shrink-0 sticky top-0 z-30">
+        <header className="h-14 bg-white border-b border-fourmiliance-border flex items-center gap-4 px-4 flex-shrink-0 sticky top-0 z-30">
           <button
-            className="md:hidden text-fourmiliance-forest"
+            className="md:hidden text-fourmiliance-forest min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={() => setOpen(true)}
             aria-label="Ouvrir le menu"
+            aria-expanded={open}
           >
             <Menu size={20} />
           </button>
@@ -207,17 +212,17 @@ export default function AppLayout() {
 
           <div className="ml-auto flex items-center gap-3">
             <button
-              className="text-[#9A9A9A] hover:text-fourmiliance-forest transition relative"
+              className="text-fourmiliance-ghost hover:text-fourmiliance-forest transition relative min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Notifications"
             >
-              <Bell size={18} />
+              <Bell size={18} aria-hidden="true" />
             </button>
             {profile && <Initials name={profile.full_name} />}
           </div>
         </header>
 
         {/* Contenu */}
-        <main className="flex-1 p-6">
+        <main id="main-content" className="flex-1 p-6" tabIndex={-1}>
           <Outlet />
         </main>
 

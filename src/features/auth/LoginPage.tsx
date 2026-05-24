@@ -92,7 +92,7 @@ export default function LoginPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-fourmiliance-cream flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="spinner" role="status" aria-label="Chargement en cours" />
       </div>
     )
   }
@@ -112,39 +112,39 @@ export default function LoginPage() {
           <h1 className="font-heading text-2xl font-semibold text-fourmiliance-forest">
             Fourmiliance Hub
           </h1>
-          <p className="text-sm text-[#9A9A9A] mt-1">Espace de gestion</p>
+          <p className="text-sm text-fourmiliance-ghost mt-1">Espace de gestion</p>
         </div>
 
         {/* Toggle mode */}
-        <div className="flex rounded-lg bg-[#EDE8DF] p-1 mb-5 gap-1">
+        <div className="flex rounded-lg bg-fourmiliance-cream-dark p-1 mb-5 gap-1">
           <button
             onClick={() => { setMode('password'); setError(null); setMagicSent(false) }}
-            className={`flex-1 py-1.5 rounded-md text-sm font-medium transition
-              ${mode === 'password' ? 'bg-white text-fourmiliance-forest shadow-sm' : 'text-[#9A9A9A] hover:text-[#5A5A5A]'}`}
+            className={`flex-1 py-2 rounded-md text-sm font-medium transition min-h-[40px]
+              ${mode === 'password' ? 'bg-white text-fourmiliance-forest shadow-sm' : 'text-fourmiliance-ghost hover:text-fourmiliance-tertiary'}`}
           >
             Mot de passe
           </button>
           <button
             onClick={() => { setMode('magic'); setError(null); setMagicSent(false) }}
-            className={`flex-1 py-1.5 rounded-md text-sm font-medium transition
-              ${mode === 'magic' ? 'bg-white text-fourmiliance-forest shadow-sm' : 'text-[#9A9A9A] hover:text-[#5A5A5A]'}`}
+            className={`flex-1 py-2 rounded-md text-sm font-medium transition min-h-[40px]
+              ${mode === 'magic' ? 'bg-white text-fourmiliance-forest shadow-sm' : 'text-fourmiliance-ghost hover:text-fourmiliance-tertiary'}`}
           >
             Lien magique
           </button>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-xl shadow-[0_4px_16px_rgba(0,0,0,.08)] p-8">
+        <div className="bg-white rounded-xl shadow-card p-8">
 
           {magicSent ? (
             <div className="text-center py-4">
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-                <svg viewBox="0 0 24 24" className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="w-12 h-12 rounded-full bg-fourmiliance-success-bg flex items-center justify-center mx-auto mb-4">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 text-fourmiliance-mid" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-[#1A1A1A] mb-1">Lien envoyé !</p>
-              <p className="text-xs text-[#9A9A9A]">
+              <p className="text-sm font-medium text-fourmiliance-ink mb-1">Lien envoyé !</p>
+              <p className="text-xs text-fourmiliance-ghost">
                 Vérifie ta boîte mail et clique sur le lien de connexion.
               </p>
               <button
@@ -157,40 +157,40 @@ export default function LoginPage() {
           ) : mode === 'password' ? (
             <form onSubmit={handlePassword} className="space-y-5" noValidate>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#1A1A1A] mb-1.5">
+                <label htmlFor="email" className="block text-sm font-medium text-fourmiliance-ink mb-1.5">
                   Adresse e-mail
                 </label>
                 <input
                   id="email" type="email" autoComplete="email" required
                   value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#E4DDD4] text-[#1A1A1A] text-sm
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-fourmiliance-border text-fourmiliance-ink text-sm
                              focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30 focus:border-fourmiliance-mid
-                             placeholder:text-[#9A9A9A] transition"
+                             placeholder:text-fourmiliance-ghost transition"
                   placeholder="vous@exemple.fr"
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#1A1A1A] mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-fourmiliance-ink mb-1.5">
                   Mot de passe
                 </label>
                 <input
                   id="password" type="password" autoComplete="current-password" required
                   value={password} onChange={e => setPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#E4DDD4] text-[#1A1A1A] text-sm
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-fourmiliance-border text-fourmiliance-ink text-sm
                              focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30 focus:border-fourmiliance-mid
-                             placeholder:text-[#9A9A9A] transition"
+                             placeholder:text-fourmiliance-ghost transition"
                   placeholder="••••••••"
                 />
               </div>
               {error && (
-                <p className="text-sm text-red-600 bg-red-50 px-3.5 py-2.5 rounded-lg border border-red-100">
+                <p role="alert" className="text-sm text-fourmiliance-rust bg-fourmiliance-rust-bg px-3.5 py-2.5 rounded-lg border border-fourmiliance-rust/20">
                   {error}
                 </p>
               )}
               <button
                 type="submit" disabled={submitting}
-                className="w-full bg-fourmiliance-mid hover:bg-fourmiliance-light text-white font-medium
-                           py-2.5 px-4 rounded-lg text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-fourmiliance-mid hover:bg-fourmiliance-forest text-white font-medium
+                           py-2.5 px-4 rounded-lg text-sm transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {submitting ? 'Connexion…' : 'Se connecter'}
               </button>
@@ -198,38 +198,38 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={handleMagicLink} className="space-y-5" noValidate>
               <div>
-                <label htmlFor="email-magic" className="block text-sm font-medium text-[#1A1A1A] mb-1.5">
+                <label htmlFor="email-magic" className="block text-sm font-medium text-fourmiliance-ink mb-1.5">
                   Adresse e-mail
                 </label>
                 <input
                   id="email-magic" type="email" autoComplete="email" required
                   value={email} onChange={e => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#E4DDD4] text-[#1A1A1A] text-sm
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-fourmiliance-border text-fourmiliance-ink text-sm
                              focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30 focus:border-fourmiliance-mid
-                             placeholder:text-[#9A9A9A] transition"
+                             placeholder:text-fourmiliance-ghost transition"
                   placeholder="vous@exemple.fr"
                 />
               </div>
               {error && (
-                <p className="text-sm text-red-600 bg-red-50 px-3.5 py-2.5 rounded-lg border border-red-100">
+                <p role="alert" className="text-sm text-fourmiliance-rust bg-fourmiliance-rust-bg px-3.5 py-2.5 rounded-lg border border-fourmiliance-rust/20">
                   {error}
                 </p>
               )}
               <button
                 type="submit" disabled={submitting}
-                className="w-full bg-fourmiliance-mid hover:bg-fourmiliance-light text-white font-medium
-                           py-2.5 px-4 rounded-lg text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-fourmiliance-mid hover:bg-fourmiliance-forest text-white font-medium
+                           py-2.5 px-4 rounded-lg text-sm transition disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {submitting ? 'Envoi…' : 'Recevoir un lien de connexion'}
               </button>
-              <p className="text-xs text-[#9A9A9A] text-center">
+              <p className="text-xs text-fourmiliance-ghost text-center">
                 Un lien valable 1h sera envoyé à ton adresse e-mail.
               </p>
             </form>
           )}
         </div>
 
-        <p className="text-center text-xs text-[#9A9A9A] mt-6">
+        <p className="text-center text-xs text-fourmiliance-ghost mt-6">
           Accès réservé aux membres de l'équipe Fourmiliance.
         </p>
       </div>

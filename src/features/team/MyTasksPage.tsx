@@ -75,7 +75,7 @@ export default function MyTasksPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement des tâches" />
       </div>
     )
   }
@@ -84,15 +84,16 @@ export default function MyTasksPage() {
     <div className="space-y-4">
 
       {/* ── Filtres ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par statut">
         {filters.map(f => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
+            aria-pressed={filter === f.key}
             className={`text-xs px-3 py-1.5 rounded-full border transition-colors
               ${filter === f.key
                 ? 'bg-fourmiliance-forest text-white border-fourmiliance-forest'
-                : 'border-[#E0DAD0] text-[#5A5A5A] hover:border-fourmiliance-mid hover:text-fourmiliance-mid'
+                : 'border-fourmiliance-border text-fourmiliance-tertiary hover:border-fourmiliance-mid hover:text-fourmiliance-mid'
               }`}
           >
             {f.label}
@@ -102,40 +103,42 @@ export default function MyTasksPage() {
 
       {/* ── Liste des tâches ─────────────────────────────────────────────── */}
       {sorted.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-12 text-center">
-          <p className="text-sm text-[#9A9A9A]">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-12 text-center">
+          <p className="text-sm text-fourmiliance-ghost">
             {filter === 'all'
               ? 'Aucune tâche assignée pour le moment.'
               : `Aucune tâche en statut "${TASK_STATUS_LABELS[filter as TaskStatus]}".`}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] divide-y divide-[#F0EBE4]">
+        <div className="bg-white rounded-xl border border-fourmiliance-border divide-y divide-fourmiliance-track">
           {sorted.map(task => {
             const isDone       = task.status === 'done'
             const inProgress   = task.status === 'in_progress'
             const isOverdue    = task.due_date && task.due_date < new Date().toISOString().slice(0, 10) && !isDone
 
             return (
-              <div key={task.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#FAFAF8] transition-colors">
+              <div key={task.id} className="flex items-center gap-3 px-4 py-3 hover:bg-fourmiliance-surface transition-colors">
                 {/* Checkbox */}
                 <button
                   onClick={() => void updateStatus(task.id, isDone ? 'todo' : 'done')}
-                  className="flex-shrink-0 text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
+                  aria-label={isDone ? `Marquer "${task.title}" comme non terminé` : `Marquer "${task.title}" comme terminé`}
+                  aria-pressed={isDone}
+                  className="flex-shrink-0 text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   {isDone
-                    ? <CheckCircle2 className="w-5 h-5 text-fourmiliance-mid" />
-                    : <Circle className="w-5 h-5" />
+                    ? <CheckCircle2 className="w-5 h-5 text-fourmiliance-mid" aria-hidden="true" />
+                    : <Circle className="w-5 h-5" aria-hidden="true" />
                   }
                 </button>
 
                 {/* Contenu */}
                 <div className="flex-1 min-w-0">
-                  <span className={`text-sm ${isDone ? 'line-through text-[#9A9A9A]' : 'text-[#1A1A1A]'}`}>
+                  <span className={`text-sm ${isDone ? 'line-through text-fourmiliance-ghost' : 'text-fourmiliance-ink'}`}>
                     {task.title}
                   </span>
                   {task.project && (
-                    <p className="text-xs text-[#9A9A9A] mt-0.5 flex items-center gap-1">
+                    <p className="text-xs text-fourmiliance-ghost mt-0.5 flex items-center gap-1">
                       <Link to={`/app/projects/${task.project.id}`}
                         className="hover:text-fourmiliance-mid transition-colors flex items-center gap-0.5">
                         {task.project.name}
@@ -147,16 +150,17 @@ export default function MyTasksPage() {
 
                 {/* Priorité */}
                 {task.priority !== 'medium' && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${TASK_PRIORITY_COLORS[task.priority]}`}>
+                  <span className={`badge flex-shrink-0 ${TASK_PRIORITY_COLORS[task.priority]}`}>
                     {TASK_PRIORITY_LABELS[task.priority]}
                   </span>
                 )}
 
                 {/* Échéance */}
                 {task.due_date && (
-                  <span className={`text-xs flex-shrink-0
-                    ${isOverdue ? 'text-red-600 font-semibold' : 'text-[#9A9A9A]'}`}>
-                    {isOverdue ? '⚠ ' : ''}{formatDate(task.due_date)}
+                  <span className={`text-xs flex-shrink-0 flex items-center gap-1
+                    ${isOverdue ? 'text-fourmiliance-rust font-semibold' : 'text-fourmiliance-ghost'}`}>
+                    {isOverdue && <span aria-label="En retard" role="img">⚠</span>}
+                    {formatDate(task.due_date)}
                   </span>
                 )}
 
@@ -166,17 +170,17 @@ export default function MyTasksPage() {
                     {!inProgress && (
                       <button
                         onClick={() => void updateStatus(task.id, 'in_progress')}
-                        title="Démarrer"
-                        className="text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
+                        aria-label={`Démarrer la tâche "${task.title}"`}
+                        className="text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                       >
-                        <Play className="w-4 h-4" />
+                        <Play className="w-4 h-4" aria-hidden="true" />
                       </button>
                     )}
                     {inProgress && (
                       <button
                         onClick={() => void updateStatus(task.id, 'review')}
-                        className="text-xs bg-amber-50 text-amber-700 border border-amber-200
-                                   px-2 py-0.5 rounded hover:bg-amber-100 transition-colors"
+                        className="text-xs bg-fourmiliance-warm-bg text-fourmiliance-ocre-dark border border-fourmiliance-ocre/30
+                                   px-2 py-0.5 rounded hover:bg-fourmiliance-ocre/20 transition-colors"
                       >
                         En révision
                       </button>

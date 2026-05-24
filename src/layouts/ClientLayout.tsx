@@ -36,7 +36,7 @@ export default function ClientLayout() {
   return (
     <div className="min-h-screen bg-fourmiliance-cream">
       {/* Header simplifié */}
-      <header className="bg-white border-b border-[#E4DDD4] px-4 py-3 sticky top-0 z-30">
+      <header className="bg-white border-b border-fourmiliance-border px-4 py-3 sticky top-0 z-30">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             {/* Logo */}
@@ -50,8 +50,8 @@ export default function ClientLayout() {
             </span>
             {project && (
               <>
-                <span className="text-[#C0B8B0] flex-shrink-0">/</span>
-                <span className="text-sm text-[#5A5A5A] font-medium truncate">
+                <span className="text-fourmiliance-disabled flex-shrink-0">/</span>
+                <span className="text-sm text-fourmiliance-tertiary font-medium truncate">
                   {project.name}
                 </span>
                 {statusLabel && (
@@ -66,10 +66,10 @@ export default function ClientLayout() {
 
           {profile && (
             <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="text-xs text-[#7A7A7A] hidden sm:inline">{profile.full_name}</span>
+              <span className="text-xs text-fourmiliance-muted hidden sm:inline">{profile.full_name}</span>
               <button
                 onClick={signOut}
-                className="text-xs text-[#9A9A9A] hover:text-fourmiliance-forest transition-colors"
+                className="text-xs text-fourmiliance-ghost hover:text-fourmiliance-forest transition-colors"
               >
                 Déconnexion
               </button>

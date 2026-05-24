@@ -45,10 +45,10 @@ const DELIVERABLE_LABELS: Record<DeliverableStatus, string> = {
 }
 
 const DELIVERABLE_COLORS: Record<DeliverableStatus, string> = {
-  a_venir:    'bg-gray-100 text-gray-600',
-  en_attente: 'bg-amber-100 text-amber-700',
-  valide:     'bg-green-100 text-green-700',
-  refuse:     'bg-red-100 text-red-700',
+  a_venir:    'badge-neutral',
+  en_attente: 'badge-warm',
+  valide:     'badge-green',
+  refuse:     'badge-rust',
 }
 
 const TIMELINE_STEPS: { status: ProjectStatus; label: string }[] = [
@@ -165,14 +165,14 @@ export default function ProjectDetail() {
   if (loadingProject) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement en cours" />
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="p-6 text-center text-[#9A9A9A]">
+      <div className="p-6 text-center text-fourmiliance-ghost">
         Projet introuvable.{' '}
         <button onClick={() => navigate('/app/projects')} className="text-fourmiliance-mid hover:underline">
           Retour
@@ -188,14 +188,15 @@ export default function ProjectDetail() {
         {/* Back */}
         <button
           onClick={() => navigate('/app/projects')}
-          className="flex items-center gap-1.5 text-sm text-[#7A7A7A] hover:text-fourmiliance-forest mb-6 transition-colors"
+          aria-label="Retour à la liste des projets"
+          className="flex items-center gap-1.5 text-sm text-fourmiliance-muted hover:text-fourmiliance-forest mb-6 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Projets
         </button>
 
         {/* ── Header ── */}
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6 mb-6">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-6 mb-6">
           {editHeader ? (
             <EditHeaderForm
               project={project}
@@ -222,7 +223,7 @@ export default function ProjectDetail() {
                       {PROJECT_STATUS_LABELS[project.status]}
                     </span>
                     {project.contact && (
-                      <span className="text-xs text-[#7A7A7A]">
+                      <span className="text-xs text-fourmiliance-muted">
                         {project.contact.company}
                       </span>
                     )}
@@ -231,10 +232,10 @@ export default function ProjectDetail() {
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={copyClientLink}
-                    className="flex items-center gap-1.5 text-sm border border-[#E0DAD0] px-3 py-1.5
+                    className="flex items-center gap-1.5 text-sm border border-fourmiliance-border px-3 py-1.5
                                rounded-lg hover:bg-fourmiliance-cream transition-colors"
                   >
-                    {copiedLink ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                    {copiedLink ? <Check className="w-4 h-4 text-fourmiliance-mid" /> : <Copy className="w-4 h-4" />}
                     {copiedLink ? 'Copié !' : 'Portail client'}
                   </button>
                   <button
@@ -249,7 +250,7 @@ export default function ProjectDetail() {
               </div>
 
               {/* Meta row */}
-              <div className="flex flex-wrap gap-6 text-sm text-[#5A5A5A] mb-4">
+              <div className="flex flex-wrap gap-6 text-sm text-fourmiliance-tertiary mb-4">
                 {project.start_date && (
                   <span>Début : <strong>{formatDate(project.start_date)}</strong></span>
                 )}
@@ -263,11 +264,18 @@ export default function ProjectDetail() {
 
               {/* Progress */}
               <div>
-                <div className="flex justify-between text-xs text-[#9A9A9A] mb-1">
+                <div className="flex justify-between text-xs text-fourmiliance-ghost mb-1">
                   <span>Progression globale</span>
                   <span className="font-semibold text-fourmiliance-forest">{computedProgress}%</span>
                 </div>
-                <div className="h-2 bg-[#E0DAD0] rounded-full overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={computedProgress}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Progression globale : ${computedProgress}%`}
+                  className="h-2 bg-fourmiliance-border rounded-full overflow-hidden"
+                >
                   <div
                     className="h-full bg-fourmiliance-mid rounded-full transition-all"
                     style={{ width: `${computedProgress}%` }}
@@ -280,7 +288,7 @@ export default function ProjectDetail() {
 
         {/* ── Timeline ── */}
         {project.status !== 'archive' && (
-          <div className="bg-white rounded-xl border border-[#E0DAD0] p-6 mb-6">
+          <div className="bg-white rounded-xl border border-fourmiliance-border p-6 mb-6">
             <h2 className="font-heading text-base text-fourmiliance-forest mb-4">Étapes</h2>
             <div className="flex items-center gap-0">
               {TIMELINE_STEPS.map((step, idx) => {
@@ -294,19 +302,19 @@ export default function ProjectDetail() {
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold mb-1
                         ${isDone    ? 'bg-fourmiliance-mid text-white' : ''}
                         ${isCurrent ? 'bg-fourmiliance-ocre text-white ring-2 ring-fourmiliance-ocre ring-offset-2' : ''}
-                        ${!isDone && !isCurrent ? 'bg-[#E0DAD0] text-[#9A9A9A]' : ''}
+                        ${!isDone && !isCurrent ? 'bg-fourmiliance-track text-fourmiliance-ghost' : ''}
                       `}>
                         {isDone ? <Check className="w-4 h-4" /> : idx + 1}
                       </div>
                       <span className={`text-xs text-center leading-tight
-                        ${isCurrent ? 'text-fourmiliance-ocre font-medium' : 'text-[#9A9A9A]'}
+                        ${isCurrent ? 'text-fourmiliance-ocre font-medium' : 'text-fourmiliance-ghost'}
                       `}>
                         {step.label}
                       </span>
                     </div>
                     {!isLast && (
                       <div className={`h-0.5 flex-shrink-0 w-4 -mt-4
-                        ${idx < statusOrder ? 'bg-fourmiliance-mid' : 'bg-[#E0DAD0]'}
+                        ${idx < statusOrder ? 'bg-fourmiliance-mid' : 'bg-fourmiliance-track'}
                       `} />
                     )}
                   </div>
@@ -317,11 +325,11 @@ export default function ProjectDetail() {
         )}
 
         {/* ── Tâches ── */}
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6 mb-6">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-6 mb-6">
           <h2 className="font-heading text-base text-fourmiliance-forest mb-4">
             Tâches
             {allTasks.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-[#9A9A9A]">
+              <span className="ml-2 text-sm font-normal text-fourmiliance-ghost">
                 {allTasks.filter(t => t.status === 'done').length}/{allTasks.length} terminées
               </span>
             )}
@@ -411,21 +419,21 @@ function EditHeaderForm({
     <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Nom *</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Nom *</label>
           <input
             required
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Type</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Type</label>
           <select
             value={form.type}
             onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           >
             <option value="">— Choisir —</option>
@@ -435,11 +443,11 @@ function EditHeaderForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Statut</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
           <select
             value={form.status}
             onChange={e => setForm(f => ({ ...f, status: e.target.value as ProjectStatus }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           >
             {PROJECT_STATUSES.map(s => (
@@ -448,30 +456,30 @@ function EditHeaderForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Date début</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date début</label>
           <input type="date" value={form.start_date}
             onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Date fin</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date fin</label>
           <input type="date" value={form.end_date}
             onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Budget (€ HT)</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Budget (€ HT)</label>
           <input type="number" min="0" value={form.budget}
             onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
       </div>
       <div className="flex justify-end gap-3">
         <button type="button" onClick={onClose}
-          className="px-4 py-2 text-sm text-[#5A5A5A] hover:text-fourmiliance-forest">
+          className="px-4 py-2 text-sm text-fourmiliance-tertiary hover:text-fourmiliance-forest">
           Annuler
         </button>
         <button type="submit" disabled={saving}
@@ -528,8 +536,8 @@ function TaskGroup({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">{label}</span>
-        <span className="text-xs text-[#9A9A9A]">({tasks.length})</span>
+        <span className="text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">{label}</span>
+        <span className="text-xs text-fourmiliance-ghost">({tasks.length})</span>
       </div>
       <div className="space-y-1 mb-2">
         {tasks.map(task => (
@@ -548,18 +556,18 @@ function TaskGroup({
           />
         ))}
         {tasks.length === 0 && (
-          <p className="text-xs text-[#C0B8B0] py-1 pl-1">Aucune tâche</p>
+          <p className="text-xs text-fourmiliance-disabled py-1 pl-1">Aucune tâche</p>
         )}
       </div>
       {/* Inline quick-add */}
       <form onSubmit={addTask} className="flex items-center gap-2">
-        <Plus className="w-3.5 h-3.5 text-[#9A9A9A] shrink-0" />
+        <Plus className="w-3.5 h-3.5 text-fourmiliance-ghost shrink-0" />
         <input
           value={quickTitle}
           onChange={e => setQuickTitle(e.target.value)}
           placeholder="Ajouter une tâche…"
-          className="flex-1 text-xs text-[#5A5A5A] bg-transparent border-b border-transparent
-                     hover:border-[#E0DAD0] focus:border-fourmiliance-mid focus:outline-none py-0.5"
+          className="flex-1 text-xs text-fourmiliance-tertiary bg-transparent border-b border-transparent
+                     hover:border-fourmiliance-border focus:border-fourmiliance-mid focus:outline-none py-0.5"
           disabled={adding}
         />
         {quickTitle.trim() && (
@@ -596,30 +604,38 @@ function TaskRow({
   return (
     <div>
       <div
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#F9F6F0] group cursor-pointer"
+        role="button"
+        tabIndex={0}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-fourmiliance-surface group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid"
         onClick={onSelect}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onSelect()}
+        aria-label={`Ouvrir les détails de la tâche : ${task.title}`}
       >
         <button
           onClick={e => { e.stopPropagation(); onToggleDone() }}
-          className="shrink-0 text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
+          aria-label={isDone ? `Marquer "${task.title}" comme non terminé` : `Marquer "${task.title}" comme terminé`}
+          aria-pressed={isDone}
+          className="shrink-0 text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
         >
           {isDone
-            ? <CheckCircle2 className="w-4 h-4 text-fourmiliance-mid" />
-            : <Circle className="w-4 h-4" />
+            ? <CheckCircle2 className="w-4 h-4 text-fourmiliance-mid" aria-hidden="true" />
+            : <Circle className="w-4 h-4" aria-hidden="true" />
           }
         </button>
         {hasSubtasks && (
           <button
             onClick={e => { e.stopPropagation(); onToggleExpand() }}
-            className="shrink-0 text-[#9A9A9A] hover:text-[#5A5A5A]"
+            aria-label={expanded ? 'Réduire les sous-tâches' : 'Afficher les sous-tâches'}
+            aria-expanded={expanded}
+            className="shrink-0 text-fourmiliance-ghost hover:text-fourmiliance-tertiary min-w-[28px] min-h-[28px] flex items-center justify-center"
           >
             {expanded
-              ? <ChevronDown className="w-3.5 h-3.5" />
-              : <ChevronRight className="w-3.5 h-3.5" />
+              ? <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />
+              : <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
             }
           </button>
         )}
-        <span className={`flex-1 text-sm ${isDone ? 'line-through text-[#9A9A9A]' : 'text-[#2A2A2A]'}`}>
+        <span className={`flex-1 text-sm ${isDone ? 'line-through text-fourmiliance-ghost' : 'text-fourmiliance-body'}`}>
           {task.title}
         </span>
         {task.priority && task.priority !== 'medium' && (
@@ -634,7 +650,7 @@ function TaskRow({
           </div>
         )}
         {task.due_date && (
-          <span className="text-xs text-[#9A9A9A] shrink-0">
+          <span className="text-xs text-fourmiliance-ghost shrink-0">
             {new Date(task.due_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
           </span>
         )}
@@ -644,11 +660,11 @@ function TaskRow({
         <div className="ml-8 space-y-0.5">
           {subtasks.map(sub => (
             <div key={sub.id}
-              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-[#F9F6F0] cursor-pointer text-xs text-[#5A5A5A]"
+              className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-fourmiliance-surface cursor-pointer text-xs text-fourmiliance-tertiary"
               onClick={onSelect}
             >
-              <Circle className="w-3 h-3 shrink-0 text-[#C0B8B0]" />
-              <span className={sub.status === 'done' ? 'line-through text-[#9A9A9A]' : ''}>{sub.title}</span>
+              <Circle className="w-3 h-3 shrink-0 text-fourmiliance-disabled" />
+              <span className={sub.status === 'done' ? 'line-through text-fourmiliance-ghost' : ''}>{sub.title}</span>
             </div>
           ))}
         </div>
@@ -672,20 +688,20 @@ function DeliverableSection({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+    <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
       <h2 className="font-heading text-base text-fourmiliance-forest mb-4">Livrables</h2>
       {deliverables.length === 0 ? (
-        <p className="text-sm text-[#9A9A9A]">Aucun livrable pour ce projet.</p>
+        <p className="text-sm text-fourmiliance-ghost">Aucun livrable pour ce projet.</p>
       ) : (
         <div className="space-y-2">
           {deliverables.map(d => {
             const status = d.status as DeliverableStatus
             return (
               <div key={d.id}
-                className="flex items-center gap-3 p-3 border border-[#E0DAD0] rounded-lg">
+                className="flex items-center gap-3 p-3 border border-fourmiliance-border rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#2A2A2A] truncate">{d.name}</p>
-                  {d.type && <p className="text-xs text-[#9A9A9A]">{d.type}</p>}
+                  <p className="text-sm font-medium text-fourmiliance-body truncate">{d.name}</p>
+                  {d.type && <p className="text-xs text-fourmiliance-ghost">{d.type}</p>}
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${DELIVERABLE_COLORS[status]}`}>
                   {DELIVERABLE_LABELS[status]}
@@ -695,17 +711,18 @@ function DeliverableSection({
                     href={d.file_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-fourmiliance-mid hover:text-fourmiliance-forest transition-colors"
+                    aria-label={`Télécharger ${d.name}`}
+                    className="text-fourmiliance-mid hover:text-fourmiliance-forest transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                     onClick={e => e.stopPropagation()}
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-4 h-4" aria-hidden="true" />
                   </a>
                 )}
                 {status === 'en_attente' && (
                   <button
                     onClick={() => validate(d.id)}
-                    className="text-xs bg-green-50 text-green-700 border border-green-200
-                               px-2 py-1 rounded hover:bg-green-100 transition-colors shrink-0"
+                    className="text-xs badge-green border border-fourmiliance-success-bg
+                               px-2 py-1 rounded hover:bg-fourmiliance-success-bg/80 transition-colors shrink-0"
                   >
                     Valider
                   </button>
@@ -779,23 +796,26 @@ function TaskPanel({
   }
 
   return (
-    <div className="w-80 border-l border-[#E0DAD0] bg-white flex flex-col shrink-0 overflow-auto">
+    <div className="w-80 border-l border-fourmiliance-border bg-white flex flex-col shrink-0 overflow-auto">
       {/* Panel header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#E0DAD0]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-fourmiliance-border">
         <span className="text-sm font-medium text-fourmiliance-forest">Détail tâche</span>
-        <button onClick={onClose}
-          className="text-[#9A9A9A] hover:text-[#5A5A5A] text-xl leading-none">×</button>
+        <button
+          onClick={onClose}
+          aria-label="Fermer le panel"
+          className="text-fourmiliance-ghost hover:text-fourmiliance-tertiary text-xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center"
+        >×</button>
       </div>
 
       <div className="flex-1 overflow-auto p-5 space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Titre</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Titre</label>
           <textarea
             value={title}
             onChange={e => setTitle(e.target.value)}
             rows={2}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm resize-none
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm resize-none
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           />
         </div>
@@ -803,11 +823,11 @@ function TaskPanel({
         {/* Status + Priority */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Statut</label>
+            <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
             <select
               value={status}
               onChange={e => setStatus(e.target.value as TaskStatus)}
-              className="w-full border border-[#E0DAD0] rounded-lg px-2 py-1.5 text-xs
+              className="w-full border border-fourmiliance-border rounded-lg px-2 py-1.5 text-xs
                          focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
             >
               {Object.entries(TASK_STATUS_LABELS).map(([v, l]) => (
@@ -816,11 +836,11 @@ function TaskPanel({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Priorité</label>
+            <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Priorité</label>
             <select
               value={priority}
               onChange={e => setPriority(e.target.value as TaskPriority)}
-              className="w-full border border-[#E0DAD0] rounded-lg px-2 py-1.5 text-xs
+              className="w-full border border-fourmiliance-border rounded-lg px-2 py-1.5 text-xs
                          focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
             >
               {Object.entries(TASK_PRIORITY_LABELS).map(([v, l]) => (
@@ -832,11 +852,11 @@ function TaskPanel({
 
         {/* Assigné */}
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Assigné à</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Assigné à</label>
           <select
             value={assignedTo}
             onChange={e => setAssignedTo(e.target.value)}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           >
             <option value="">— Non assigné —</option>
@@ -848,56 +868,56 @@ function TaskPanel({
 
         {/* Date limite */}
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Date limite</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date limite</label>
           <input
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Description</label>
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
             rows={3}
             placeholder="Détails, contexte…"
-            className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm resize-none
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm resize-none
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
           />
         </div>
 
         {/* Sous-tâches */}
         <div>
-          <label className="block text-xs font-medium text-[#5A5A5A] mb-2">
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-2">
             Sous-tâches ({subtasks.length})
           </label>
           <div className="space-y-1 mb-2">
             {subtasks.map(sub => (
               <div key={sub.id}
-                className="flex items-center gap-2 text-xs text-[#5A5A5A]">
+                className="flex items-center gap-2 text-xs text-fourmiliance-tertiary">
                 {sub.status === 'done'
                   ? <CheckCircle2 className="w-3.5 h-3.5 text-fourmiliance-mid shrink-0" />
-                  : <Circle className="w-3.5 h-3.5 text-[#C0B8B0] shrink-0" />
+                  : <Circle className="w-3.5 h-3.5 text-fourmiliance-disabled shrink-0" />
                 }
-                <span className={sub.status === 'done' ? 'line-through text-[#9A9A9A]' : ''}>
+                <span className={sub.status === 'done' ? 'line-through text-fourmiliance-ghost' : ''}>
                   {sub.title}
                 </span>
               </div>
             ))}
           </div>
           <form onSubmit={addSubtask} className="flex items-center gap-2">
-            <Plus className="w-3.5 h-3.5 text-[#9A9A9A] shrink-0" />
+            <Plus className="w-3.5 h-3.5 text-fourmiliance-ghost shrink-0" />
             <input
               value={newSubtitle}
               onChange={e => setNewSubtitle(e.target.value)}
               placeholder="Ajouter une sous-tâche…"
               disabled={addingSub}
-              className="flex-1 text-xs border-b border-[#E0DAD0] focus:border-fourmiliance-mid
+              className="flex-1 text-xs border-b border-fourmiliance-border focus:border-fourmiliance-mid
                          focus:outline-none py-0.5 bg-transparent"
             />
           </form>
@@ -905,7 +925,7 @@ function TaskPanel({
       </div>
 
       {/* Save button */}
-      <div className="px-5 py-4 border-t border-[#E0DAD0]">
+      <div className="px-5 py-4 border-t border-fourmiliance-border">
         <button
           onClick={() => updateMutation.mutate()}
           disabled={saving}

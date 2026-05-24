@@ -10,12 +10,12 @@ import { SERVICE_LABELS } from '../../lib/constants'
 import { formatCurrency, getInitials } from '../../lib/utils'
 
 const COLUMNS: { key: PipelineStage; label: string }[] = [
-  { key: 'prospect', label: 'Prospect'    },
-  { key: 'contacte', label: 'Contacté'    },
+  { key: 'prospect', label: 'Prospect'     },
+  { key: 'contacte', label: 'Contacté'     },
   { key: 'devis',    label: 'Devis envoyé' },
-  { key: 'signe',    label: 'Signé'       },
-  { key: 'en_cours', label: 'En cours'    },
-  { key: 'livre',    label: 'Livré'       },
+  { key: 'signe',    label: 'Signé'        },
+  { key: 'en_cours', label: 'En cours'     },
+  { key: 'livre',    label: 'Livré'        },
 ]
 
 interface Props {
@@ -117,10 +117,10 @@ export default function KanbanBoard({ contacts }: Props) {
           >
             {/* En-tête colonne */}
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[12px] font-semibold text-[#5A5A5A] uppercase tracking-[.5px]">
+              <span className="text-[12px] font-semibold text-fourmiliance-tertiary uppercase tracking-[.5px]">
                 {col.label}
               </span>
-              <span className="bg-white text-[#9A9A9A] text-[11px] font-semibold px-1.5 py-0.5 rounded-full min-w-[22px] text-center">
+              <span className="bg-white text-fourmiliance-ghost text-[11px] font-semibold px-1.5 py-0.5 rounded-full min-w-[22px] text-center">
                 {colContacts.length}
               </span>
             </div>
@@ -144,7 +144,7 @@ export default function KanbanBoard({ contacts }: Props) {
                 className={`rounded-lg border-2 border-dashed p-4 text-center text-xs transition-colors ${
                   isOver
                     ? 'border-fourmiliance-mid text-fourmiliance-mid bg-white/60'
-                    : 'border-[#D5CEC5] text-[#9A9A9A]'
+                    : 'border-fourmiliance-border text-fourmiliance-ghost'
                 }`}
               >
                 Déposer ici
@@ -192,21 +192,26 @@ function KanbanCard({
   }
 
   const borderStyle: React.CSSProperties = isDevis
-    ? { borderLeft: '3px solid #B87520' }
+    ? { borderLeft: '3px solid #B87520' }   // fourmiliance-ocre
     : isSigne
-    ? { borderLeft: '3px solid #2D5A1B' }
+    ? { borderLeft: '3px solid #2D5A1B' }   // fourmiliance-mid
     : {}
 
   return (
     <div
       draggable
+      tabIndex={0}
+      role="button"
+      aria-label={`${contact.company} — ${contact.contact_name}${contact.estimated_value != null ? ` — ${formatCurrency(contact.estimated_value)}` : ''}`}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onClick={handleClick}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handleClick()}
       style={borderStyle}
       className={[
-        'bg-white rounded-lg p-3 border border-[#E4DDD4]',
+        'bg-white rounded-lg p-3 border border-fourmiliance-border',
         'cursor-grab active:cursor-grabbing transition-all select-none',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid',
         isDragging ? 'opacity-40 shadow-card'        : '',
         !isDragging ? 'hover:shadow-md hover:-translate-y-px' : '',
         isLivre && !isDragging ? 'opacity-75'        : '',
@@ -214,14 +219,14 @@ function KanbanCard({
     >
       {/* Ligne 1 : nom + poignée */}
       <div className="flex items-start justify-between gap-1.5 mb-1.5">
-        <span className="text-[13px] font-semibold text-[#1A1A1A] leading-tight">
+        <span className="text-[13px] font-semibold text-fourmiliance-ink leading-tight">
           {contact.company}
         </span>
-        <GripVertical size={13} className="text-[#9A9A9A] flex-shrink-0 mt-0.5" />
+        <GripVertical size={13} className="text-fourmiliance-ghost flex-shrink-0 mt-0.5" />
       </div>
 
       {/* Ligne 2 : contact + ville */}
-      <div className="text-xs text-[#5A5A5A] mb-2 leading-tight">
+      <div className="text-xs text-fourmiliance-tertiary mb-2 leading-tight">
         {contact.contact_name}
         {contact.city ? ` · ${contact.city}` : ''}
       </div>
@@ -230,11 +235,11 @@ function KanbanCard({
       {(isDevis || isSigne) && contact.estimated_value != null && (
         <div
           className={`text-xs font-semibold mb-2 ${
-            isSigne ? 'text-[#2D5A1B]' : 'text-[#B87520]'
+            isSigne ? 'text-fourmiliance-mid' : 'text-fourmiliance-ocre'
           }`}
         >
           {formatCurrency(contact.estimated_value)}
-          <span className="font-normal text-[#9A9A9A]">
+          <span className="font-normal text-fourmiliance-ghost">
             {isDevis ? ' · En attente' : ' · Signé'}
           </span>
         </div>
@@ -255,11 +260,7 @@ function KanbanCard({
       {/* Footer : badge service + avatar + date */}
       <div className="flex items-center justify-between">
         {contact.service_type ? (
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-              SERVICE_LABELS[contact.service_type].badge
-            }`}
-          >
+          <span className={`badge ${SERVICE_LABELS[contact.service_type].badge}`}>
             {SERVICE_LABELS[contact.service_type].label}
           </span>
         ) : (
@@ -269,13 +270,14 @@ function KanbanCard({
         <div className="flex items-center gap-1.5">
           {contact.assignee && (
             <div
+              role="img"
+              aria-label={`Assigné à ${contact.assignee.full_name}`}
               className="w-[26px] h-[26px] rounded-full bg-fourmiliance-mid text-white flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
-              title={contact.assignee.full_name}
             >
               {getInitials(contact.assignee.full_name)}
             </div>
           )}
-          <span className="text-[11px] text-[#9A9A9A]">
+          <span className="text-[11px] text-fourmiliance-ghost">
             {relativeDate(contact.updated_at)}
           </span>
         </div>
@@ -284,7 +286,7 @@ function KanbanCard({
       {/* Badge livré */}
       {isLivre && (
         <div className="mt-1.5 flex justify-end">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#DCFCE7] text-[#15803D]">
+          <span className="badge badge-pine">
             ✓ Livré
           </span>
         </div>

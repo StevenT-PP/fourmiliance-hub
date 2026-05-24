@@ -198,18 +198,24 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invoice-form-title"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+      >
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E0DAD0]">
-          <h2 className="font-heading text-lg text-fourmiliance-forest">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
+          <h2 id="invoice-form-title" className="font-heading text-lg text-fourmiliance-forest">
             Nouveau document
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[#F0EBE4] transition-colors"
+            aria-label="Fermer"
+            className="p-1.5 rounded-lg hover:bg-fourmiliance-track transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
-            <X className="w-5 h-5 text-[#7A7A7A]" />
+            <X className="w-5 h-5 text-fourmiliance-ghost" aria-hidden="true" />
           </button>
         </div>
 
@@ -242,13 +248,14 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
             {/* Client + Projet */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="if-client" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                   Client
                 </label>
                 <select
+                  id="if-client"
                   value={form.contact_id}
                   onChange={e => { set('contact_id', e.target.value); set('project_id', '') }}
-                  className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
+                  className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
                 >
                   <option value="">— Sélectionner —</option>
                   {contacts.map(c => (
@@ -257,13 +264,14 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="if-project" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                   Projet (optionnel)
                 </label>
                 <select
+                  id="if-project"
                   value={form.project_id}
                   onChange={e => set('project_id', e.target.value)}
-                  className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
+                  className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
                 >
                   <option value="">—</option>
                   {filteredProjects.map(p => (
@@ -276,40 +284,44 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
             {/* Dates + TVA */}
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="if-issued" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                   Date d'émission
                 </label>
                 <input
+                  id="if-issued"
                   type="date"
                   value={form.issued_date}
                   onChange={e => set('issued_date', e.target.value)}
                   required
-                  className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
+                  aria-required="true"
+                  className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="if-due" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                   Échéance
                 </label>
                 <input
+                  id="if-due"
                   type="date"
                   value={form.due_date}
                   onChange={e => set('due_date', e.target.value)}
-                  className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
+                  className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="if-tva" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                   TVA %
                 </label>
                 <input
+                  id="if-tva"
                   type="number"
                   value={form.tva_rate}
                   onChange={e => set('tva_rate', parseFloat(e.target.value) || 0)}
                   min={0}
                   max={100}
                   step={0.5}
-                  className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
+                  className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
                 />
               </div>
             </div>
@@ -345,7 +357,8 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
                       value={item.description}
                       onChange={e => setItem(idx, 'description', e.target.value)}
                       placeholder="Description…"
-                      className="border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
+                      aria-label={`Désignation ligne ${idx + 1}`}
+                      className="border border-fourmiliance-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid"
                     />
                     <input
                       type="number"
@@ -353,7 +366,8 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
                       onChange={e => setItem(idx, 'quantity', e.target.value)}
                       min={0}
                       step={0.5}
-                      className="border border-[#E0DAD0] rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:border-fourmiliance-mid"
+                      aria-label={`Quantité ligne ${idx + 1}`}
+                      className="border border-fourmiliance-border rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:border-fourmiliance-mid"
                     />
                     <input
                       type="number"
@@ -361,15 +375,17 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
                       onChange={e => setItem(idx, 'unit_price', e.target.value)}
                       min={0}
                       step={10}
-                      className="border border-[#E0DAD0] rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:border-fourmiliance-mid"
+                      aria-label={`Prix unitaire HT ligne ${idx + 1}`}
+                      className="border border-fourmiliance-border rounded-lg px-2 py-2 text-sm text-right focus:outline-none focus:border-fourmiliance-mid"
                     />
                     <button
                       type="button"
                       onClick={() => removeItem(idx)}
                       disabled={form.items.length === 1}
-                      className="flex items-center justify-center text-[#9A9A9A] hover:text-red-500 disabled:opacity-30 transition-colors"
+                      aria-label={`Supprimer la ligne ${idx + 1}`}
+                      className="flex items-center justify-center text-fourmiliance-ghost hover:text-fourmiliance-rust disabled:opacity-30 transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -394,20 +410,21 @@ export default function InvoiceForm({ onClose, onSuccess }: InvoiceFormProps) {
 
             {/* Notes */}
             <div>
-              <label className="text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-1.5 block">
+              <label htmlFor="if-notes" className="text-xs font-semibold text-fourmiliance-ghost uppercase tracking-wide mb-1.5 block">
                 Notes (optionnel)
               </label>
               <textarea
+                id="if-notes"
                 value={form.notes}
                 onChange={e => set('notes', e.target.value)}
                 rows={2}
                 placeholder="Conditions particulières, informations complémentaires…"
-                className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid resize-none"
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-fourmiliance-mid resize-none"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+              <p role="alert" className="text-sm text-fourmiliance-rust bg-fourmiliance-rust-bg rounded-lg px-3 py-2">{error}</p>
             )}
           </div>
 

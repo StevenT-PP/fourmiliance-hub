@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal } from 'lucide-react'
-import { pdf } from '@react-pdf/renderer'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Invoice } from '../../types'
 import {
@@ -10,7 +9,6 @@ import {
   type InvoiceStatus,
 } from '../../lib/constants'
 import { formatCurrency, formatDate } from '../../lib/utils'
-import InvoicePDF from './InvoicePDF'
 import InvoiceForm from './InvoiceForm'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,10 +17,15 @@ interface InvoiceRow extends Invoice {
   contact: Pick<Contact, 'id' | 'company' | 'contact_name'> | null
 }
 
-// ─── PDF download helper ──────────────────────────────────────────────────────
+// ─── PDF download helper (dynamic import — chargé uniquement au clic) ────────
 
 async function downloadPDF(inv: InvoiceRow) {
-  const blob = await pdf(<InvoicePDF invoice={inv} />).toBlob()
+  const [{ pdf }, { default: InvoicePDF }] = await Promise.all([
+    import('@react-pdf/renderer'),
+    import('./InvoicePDF'),
+  ])
+  const element = <InvoicePDF invoice={inv} />
+  const blob = await pdf(element).toBlob()
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
@@ -78,7 +81,7 @@ export default function InvoiceList() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="w-6 h-6 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement des documents" />
       </div>
     )
   }
@@ -88,11 +91,11 @@ export default function InvoiceList() {
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2 flex-wrap">
-          <SlidersHorizontal className="w-4 h-4 text-[#9A9A9A]" />
+          <SlidersHorizontal className="w-4 h-4 text-fourmiliance-ghost" />
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value as typeof typeFilter)}
-            className="border border-[#E0DAD0] rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
+            className="border border-fourmiliance-border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
           >
             <option value="all">Tous types</option>
             <option value="facture">Factures</option>
@@ -101,7 +104,7 @@ export default function InvoiceList() {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="border border-[#E0DAD0] rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
+            className="border border-fourmiliance-border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-fourmiliance-mid"
           >
             <option value="all">Tous statuts</option>
             {(
@@ -110,7 +113,7 @@ export default function InvoiceList() {
               <option key={s} value={s}>{INVOICE_STATUS_LABELS[s]}</option>
             ))}
           </select>
-          <span className="text-xs text-[#9A9A9A]">
+          <span className="text-xs text-fourmiliance-ghost">
             {filtered.length} document{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -126,67 +129,55 @@ export default function InvoiceList() {
 
       {/* ── Table ── */}
       {filtered.length === 0 ? (
-        <p className="text-sm text-[#9A9A9A] py-8 text-center">Aucun document trouvé.</p>
+        <p className="text-sm text-fourmiliance-ghost py-8 text-center">Aucun document trouvé.</p>
       ) : (
         <div className="overflow-x-auto -mx-2">
           <table className="w-full text-sm min-w-[680px]">
             <thead>
-              <tr className="text-left border-b border-[#E0DAD0]">
+              <tr className="text-left border-b border-fourmiliance-border">
                 {['N°', 'Type', 'Client', 'Émis le', 'TTC', 'Statut', 'Actions'].map(h => (
-                  <th key={h} className="pb-2 px-2 text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide last:text-right">
+                  <th key={h} className="pb-2 px-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide last:text-right">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F0EBE4]">
+            <tbody className="divide-y divide-fourmiliance-track">
               {filtered.map(inv => {
                 const eff = effectiveStatus(inv)
                 return (
-                  <tr key={inv.id} className="hover:bg-[#FAFAF8]">
+                  <tr key={inv.id} className="hover:bg-fourmiliance-surface">
 
                     {/* N° */}
-                    <td className="px-2 py-3 font-mono text-xs text-[#5A5A5A] whitespace-nowrap">
+                    <td className="px-2 py-3 font-mono text-xs text-fourmiliance-tertiary whitespace-nowrap">
                       {inv.number}
                     </td>
 
                     {/* Type */}
                     <td className="px-2 py-3">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium
-                          ${inv.type === 'devis'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-fourmiliance-mid/10 text-fourmiliance-mid'
-                          }`}
-                      >
+                      <span className={`badge ${inv.type === 'devis' ? 'badge-warm' : 'badge-pine'}`}>
                         {inv.type === 'devis' ? 'Devis' : 'Facture'}
                       </span>
                     </td>
 
                     {/* Client */}
-                    <td className="px-2 py-3 text-[#2A2A2A] truncate max-w-[130px]">
+                    <td className="px-2 py-3 text-fourmiliance-body truncate max-w-[130px]">
                       {inv.contact?.company ?? '—'}
                     </td>
 
                     {/* Date */}
-                    <td className="px-2 py-3 text-[#7A7A7A] text-xs whitespace-nowrap">
+                    <td className="px-2 py-3 text-fourmiliance-muted text-xs whitespace-nowrap">
                       {inv.issued_date ? formatDate(inv.issued_date) : '—'}
                     </td>
 
                     {/* Montant */}
-                    <td className="px-2 py-3 font-semibold text-[#2A2A2A] whitespace-nowrap">
+                    <td className="px-2 py-3 font-semibold text-fourmiliance-body whitespace-nowrap">
                       {formatCurrency(inv.amount_ttc ?? 0)}
                     </td>
 
                     {/* Statut */}
                     <td className="px-2 py-3">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full
-                          ${eff === 'en_retard'
-                            ? 'bg-red-100 text-red-700'
-                            : (INVOICE_STATUS_COLORS[inv.status as InvoiceStatus] ?? 'bg-gray-100 text-gray-600')
-                          }`}
-                      >
+                      <span className={`badge ${eff === 'en_retard' ? 'badge-rust' : (INVOICE_STATUS_COLORS[inv.status as InvoiceStatus] ?? 'badge-neutral')}`}>
                         {INVOICE_STATUS_LABELS[eff]}
                       </span>
                     </td>
@@ -197,43 +188,43 @@ export default function InvoiceList() {
 
                         {/* Télécharger PDF */}
                         <button
-                          title="Télécharger PDF"
+                          aria-label={`Télécharger le PDF ${inv.number}`}
                           onClick={() => downloadPDF(inv)}
-                          className="p-1.5 rounded hover:bg-[#F0EBE4] text-[#9A9A9A] hover:text-fourmiliance-mid transition-colors"
+                          className="p-2 rounded hover:bg-fourmiliance-track text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                         >
-                          <Download className="w-4 h-4" />
+                          <Download className="w-4 h-4" aria-hidden="true" />
                         </button>
 
                         {/* Marquer envoyé */}
                         {inv.status === 'brouillon' && (
                           <button
-                            title="Marquer comme envoyé"
+                            aria-label={`Marquer ${inv.number} comme envoyé`}
                             onClick={() => changeStatus(inv.id, 'envoye')}
-                            className="p-1.5 rounded hover:bg-blue-50 text-[#9A9A9A] hover:text-blue-600 transition-colors"
+                            className="p-2 rounded hover:bg-fourmiliance-surface text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                           >
-                            <Send className="w-4 h-4" />
+                            <Send className="w-4 h-4" aria-hidden="true" />
                           </button>
                         )}
 
                         {/* Marquer en attente */}
                         {inv.status === 'envoye' && (
                           <button
-                            title="Marquer en attente de paiement"
+                            aria-label={`Marquer ${inv.number} en attente de paiement`}
                             onClick={() => changeStatus(inv.id, 'en_attente')}
-                            className="p-1.5 rounded hover:bg-amber-50 text-[#9A9A9A] hover:text-amber-600 transition-colors"
+                            className="p-2 rounded hover:bg-fourmiliance-warm-bg text-fourmiliance-ghost hover:text-fourmiliance-ocre transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                           >
-                            <Clock className="w-4 h-4" />
+                            <Clock className="w-4 h-4" aria-hidden="true" />
                           </button>
                         )}
 
                         {/* Marquer payé */}
                         {(inv.status === 'envoye' || inv.status === 'en_attente' || eff === 'en_retard') && (
                           <button
-                            title="Marquer comme payée"
+                            aria-label={`Marquer ${inv.number} comme payé`}
                             onClick={() => changeStatus(inv.id, 'paye')}
-                            className="p-1.5 rounded hover:bg-green-50 text-[#9A9A9A] hover:text-green-600 transition-colors"
+                            className="p-2 rounded hover:bg-fourmiliance-success-bg text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                           >
-                            <CheckCircle className="w-4 h-4" />
+                            <CheckCircle className="w-4 h-4" aria-hidden="true" />
                           </button>
                         )}
 

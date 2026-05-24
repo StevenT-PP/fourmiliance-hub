@@ -1,10 +1,12 @@
-import { useState, type ElementType } from 'react'
+import { useState, useRef, type ElementType } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, FolderKanban, TrendingUp, ExternalLink,
   Clock, Landmark, Building2, UserCog, Settings, Menu, Bell,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.tsx'
+import { useNotifications } from '../hooks/useNotifications'
+import NotificationDropdown from '../features/notifications/NotificationDropdown'
 
 type NavItem = { label: string; path: string; icon: ElementType }
 type NavSection = { section: string; items: NavItem[] }
@@ -96,6 +98,9 @@ function PageTitle() {
 export default function AppLayout() {
   const { profile, signOut } = useAuth()
   const [open, setOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const bellRef = useRef<HTMLButtonElement>(null)
+  const { unreadCount } = useNotifications()
 
   const nav = profile?.role === 'sous_traitant' ? contractorNav : adminNav
 
@@ -211,13 +216,30 @@ export default function AppLayout() {
 
           <PageTitle />
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3 relative">
             <button
-              className="text-fourmiliance-ghost hover:text-fourmiliance-forest transition relative min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Notifications"
+              ref={bellRef}
+              className="text-fourmiliance-ghost hover:text-fourmiliance-forest transition relative min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid rounded-lg"
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ''}`}
+              aria-expanded={notifOpen}
+              aria-haspopup="dialog"
+              onClick={() => setNotifOpen(v => !v)}
             >
               <Bell size={18} aria-hidden="true" />
+              {unreadCount > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-2 right-2 w-4 h-4 rounded-full bg-fourmiliance-mid text-white text-[9px] font-bold flex items-center justify-center leading-none"
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
+            <NotificationDropdown
+              open={notifOpen}
+              onClose={() => setNotifOpen(false)}
+              anchorRef={bellRef}
+            />
             {profile && <Initials name={profile.full_name} />}
           </div>
         </header>

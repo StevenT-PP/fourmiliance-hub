@@ -33,10 +33,10 @@ const DELIVERABLE_LABELS: Record<DeliverableStatus, string> = {
 }
 
 const DELIVERABLE_COLORS: Record<DeliverableStatus, string> = {
-  a_venir:    'bg-gray-100 text-gray-600',
-  en_attente: 'bg-amber-100 text-amber-700',
-  valide:     'bg-green-100 text-green-700',
-  refuse:     'bg-red-100 text-red-700',
+  a_venir:    'badge-neutral',
+  en_attente: 'badge-warm',
+  valide:     'badge-green',
+  refuse:     'badge-rust',
 }
 
 const TIMELINE_STEPS: { status: ProjectStatus; label: string }[] = [
@@ -127,14 +127,14 @@ export default function ClientPortal() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement du projet" />
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="text-center py-20 text-[#9A9A9A]">Projet introuvable.</div>
+      <div className="text-center py-20 text-fourmiliance-ghost">Projet introuvable.</div>
     )
   }
 
@@ -144,10 +144,7 @@ export default function ClientPortal() {
     <div className="space-y-6">
 
       {/* ── Hero header ──────────────────────────────────────────────────── */}
-      <div
-        className="rounded-xl overflow-hidden text-white"
-        style={{ background: 'linear-gradient(135deg, #1E4010 0%, #2D5A1B 100%)' }}
-      >
+      <div className="rounded-xl overflow-hidden text-white bg-gradient-to-br from-fourmiliance-forest to-fourmiliance-mid">
         <div className="p-8">
           <p className="text-white/60 text-sm mb-1">Votre projet</p>
           <h1 className="font-heading text-3xl font-semibold mb-2">{project.name}</h1>
@@ -180,7 +177,14 @@ export default function ClientPortal() {
               <span className="text-white/60">Avancement global</span>
               <span className="font-semibold text-white">{computedProgress} %</span>
             </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={computedProgress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Avancement global : ${computedProgress}%`}
+              className="h-2 bg-white/20 rounded-full overflow-hidden"
+            >
               <div
                 className="h-full bg-white rounded-full transition-all duration-500"
                 style={{ width: `${computedProgress}%` }}
@@ -192,7 +196,7 @@ export default function ClientPortal() {
 
       {/* ── Timeline (lecture seule) ─────────────────────────────────────── */}
       {project.status !== 'archive' && (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
           <h2 className="font-heading text-base text-fourmiliance-forest mb-5">
             Étapes du projet
           </h2>
@@ -208,21 +212,21 @@ export default function ClientPortal() {
                                      text-xs font-semibold mb-2 flex-shrink-0
                       ${isDone    ? 'bg-fourmiliance-mid text-white' : ''}
                       ${isCurrent ? 'bg-fourmiliance-ocre text-white ring-2 ring-fourmiliance-ocre ring-offset-2' : ''}
-                      ${!isDone && !isCurrent ? 'bg-[#E0DAD0] text-[#9A9A9A]' : ''}
+                      ${!isDone && !isCurrent ? 'bg-fourmiliance-border text-fourmiliance-ghost' : ''}
                     `}>
-                      {isDone ? <Check className="w-4 h-4" /> : idx + 1}
+                      {isDone ? <Check className="w-4 h-4" aria-hidden="true" /> : idx + 1}
                     </div>
                     <span className={`text-xs text-center leading-tight px-1
                       ${isCurrent ? 'text-fourmiliance-ocre font-semibold' : ''}
                       ${isDone    ? 'text-fourmiliance-mid font-medium' : ''}
-                      ${!isDone && !isCurrent ? 'text-[#9A9A9A]' : ''}
+                      ${!isDone && !isCurrent ? 'text-fourmiliance-ghost' : ''}
                     `}>
                       {step.label}
                     </span>
                   </div>
                   {!isLast && (
                     <div className={`h-0.5 flex-shrink-0 w-4 -mt-5
-                      ${idx < statusOrder ? 'bg-fourmiliance-mid' : 'bg-[#E0DAD0]'}
+                      ${idx < statusOrder ? 'bg-fourmiliance-mid' : 'bg-fourmiliance-border'}
                     `} />
                   )}
                 </div>
@@ -233,18 +237,18 @@ export default function ClientPortal() {
       )}
 
       {/* ── Livrables ───────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+      <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
         <h2 className="font-heading text-base text-fourmiliance-forest mb-4">
           Livrables
           {deliverables.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-[#9A9A9A]">
+            <span className="ml-2 text-sm font-normal text-fourmiliance-ghost">
               {deliverables.filter(d => d.status === 'valide').length}/{deliverables.length} validés
             </span>
           )}
         </h2>
 
         {deliverables.length === 0 ? (
-          <p className="text-sm text-[#9A9A9A]">
+          <p className="text-sm text-fourmiliance-ghost">
             Aucun livrable disponible pour le moment.
           </p>
         ) : (
@@ -254,16 +258,16 @@ export default function ClientPortal() {
               return (
                 <div
                   key={d.id}
-                  className="flex flex-wrap items-center gap-3 p-4 border border-[#E0DAD0] rounded-xl"
+                  className="flex flex-wrap items-center gap-3 p-4 border border-fourmiliance-border rounded-xl"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#2A2A2A] truncate">{d.name}</p>
+                    <p className="text-sm font-medium text-fourmiliance-body truncate">{d.name}</p>
                     {d.type && (
-                      <p className="text-xs text-[#9A9A9A] mt-0.5">{d.type}</p>
+                      <p className="text-xs text-fourmiliance-ghost mt-0.5">{d.type}</p>
                     )}
                   </div>
 
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full flex-shrink-0 ${DELIVERABLE_COLORS[status]}`}>
+                  <span className={`badge flex-shrink-0 ${DELIVERABLE_COLORS[status]}`}>
                     {DELIVERABLE_LABELS[status]}
                   </span>
 
@@ -272,11 +276,12 @@ export default function ClientPortal() {
                       href={d.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Télécharger ${d.name}`}
                       className="flex items-center gap-1.5 text-xs text-fourmiliance-mid
                                  hover:text-fourmiliance-forest transition-colors flex-shrink-0
-                                 border border-[#E0DAD0] px-2.5 py-1.5 rounded-lg"
+                                 border border-fourmiliance-border px-2.5 py-1.5 rounded-lg"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="w-3.5 h-3.5" aria-hidden="true" />
                       Télécharger
                     </a>
                   )}
@@ -285,18 +290,20 @@ export default function ClientPortal() {
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => validateDeliverable(d.id)}
-                        className="flex items-center gap-1.5 text-xs bg-green-50 text-green-700
-                                   border border-green-200 px-2.5 py-1.5 rounded-lg
-                                   hover:bg-green-100 transition-colors"
+                        aria-label={`Valider le livrable "${d.name}"`}
+                        className="flex items-center gap-1.5 text-xs bg-fourmiliance-success-bg text-fourmiliance-mid
+                                   border border-fourmiliance-mid/20 px-2.5 py-1.5 rounded-lg
+                                   hover:bg-fourmiliance-mid/20 transition-colors"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3.5 h-3.5" aria-hidden="true" />
                         Valider
                       </button>
                       <button
                         onClick={() => requestModification(d.id, d.name)}
-                        className="flex items-center gap-1.5 text-xs bg-amber-50 text-amber-700
-                                   border border-amber-200 px-2.5 py-1.5 rounded-lg
-                                   hover:bg-amber-100 transition-colors"
+                        aria-label={`Demander une modification pour "${d.name}"`}
+                        className="flex items-center gap-1.5 text-xs bg-fourmiliance-warm-bg text-fourmiliance-ocre-dark
+                                   border border-fourmiliance-ocre/30 px-2.5 py-1.5 rounded-lg
+                                   hover:bg-fourmiliance-ocre/20 transition-colors"
                       >
                         Demander modif.
                       </button>
@@ -310,13 +317,13 @@ export default function ClientPortal() {
       </div>
 
       {/* ── Upload fichiers — tâche 4.2 ─────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+      <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
         <h2 className="font-heading text-base text-fourmiliance-forest mb-4">Fichiers</h2>
         <FileUpload projectId={projectId!} />
       </div>
 
       {/* ── Messagerie temps réel — tâche 4.3 ──────────────────────────── */}
-      <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+      <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5 text-fourmiliance-forest" />
           <h2 className="font-heading text-base text-fourmiliance-forest">Messages</h2>

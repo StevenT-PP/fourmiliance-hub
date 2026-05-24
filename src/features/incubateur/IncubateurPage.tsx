@@ -17,11 +17,11 @@ const STAGE_LABELS: Record<IncubatedStage, string> = {
 }
 
 const STAGE_COLORS: Record<IncubatedStage, string> = {
-  candidature: 'bg-gray-100 text-gray-600',
-  selection:   'bg-blue-100 text-blue-700',
-  actif:       'bg-green-100 text-green-700',
-  diplome:     'bg-fourmiliance-ocre/15 text-fourmiliance-ocre',
-  archive:     'bg-gray-50 text-gray-400',
+  candidature: 'badge-neutral',
+  selection:   'badge-sage',
+  actif:       'badge-green',
+  diplome:     'badge-warm',
+  archive:     'badge-neutral',
 }
 
 const ALL_STAGES: IncubatedStage[] = ['candidature', 'selection', 'actif', 'diplome', 'archive']
@@ -55,7 +55,7 @@ export default function IncubateurPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement des entreprises incubées" />
       </div>
     )
   }
@@ -65,13 +65,15 @@ export default function IncubateurPage() {
 
       {/* ── Toolbar ──────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par stade">
           <button
             onClick={() => setFilterStage('all')}
+            aria-pressed={filterStage === 'all'}
             className={`text-xs px-3 py-1.5 rounded-full border transition-colors
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid
               ${filterStage === 'all'
                 ? 'bg-fourmiliance-forest text-white border-fourmiliance-forest'
-                : 'border-[#E0DAD0] text-[#5A5A5A] hover:border-fourmiliance-mid'
+                : 'border-fourmiliance-border text-fourmiliance-tertiary hover:border-fourmiliance-mid'
               }`}
           >
             Tous ({companies.length})
@@ -80,10 +82,12 @@ export default function IncubateurPage() {
             <button
               key={s}
               onClick={() => setFilterStage(s)}
+              aria-pressed={filterStage === s}
               className={`text-xs px-3 py-1.5 rounded-full border transition-colors
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid
                 ${filterStage === s
                   ? 'bg-fourmiliance-forest text-white border-fourmiliance-forest'
-                  : 'border-[#E0DAD0] text-[#5A5A5A] hover:border-fourmiliance-mid'
+                  : 'border-fourmiliance-border text-fourmiliance-tertiary hover:border-fourmiliance-mid'
                 }`}
             >
               {STAGE_LABELS[s]}
@@ -93,41 +97,47 @@ export default function IncubateurPage() {
         <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-1.5 text-sm bg-fourmiliance-forest text-white
-                     px-3 py-1.5 rounded-lg hover:bg-fourmiliance-mid transition-colors"
+                     px-3 py-2 rounded-lg hover:bg-fourmiliance-mid transition-colors min-h-[44px]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4" aria-hidden="true" />
           Nouvelle entreprise
         </button>
       </div>
 
       {/* ── Grid entreprises ─────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-12 text-center">
-          <p className="text-sm text-[#9A9A9A]">Aucune entreprise incubée dans cette catégorie.</p>
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-12 text-center">
+          <p className="text-sm text-fourmiliance-ghost">Aucune entreprise incubée dans cette catégorie.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(c => (
             <div
               key={c.id}
+              role="button"
+              tabIndex={0}
               onClick={() => setSelected(c)}
-              className="bg-white rounded-xl border border-[#E0DAD0] p-5 cursor-pointer
-                         hover:shadow-card hover:border-fourmiliance-mid/30 transition-all"
+              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setSelected(c)}
+              aria-label={`Voir les détails de ${c.name}`}
+              className="bg-white rounded-xl border border-fourmiliance-border p-5 cursor-pointer
+                         hover:shadow-card hover:border-fourmiliance-mid/30 transition-all
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid"
             >
               <div className="flex items-start justify-between gap-2 mb-3">
-                <h3 className="font-semibold text-[#1A1A1A] text-sm leading-tight">{c.name}</h3>
-                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${STAGE_COLORS[c.stage]}`}>
+                <h3 className="font-semibold text-fourmiliance-ink text-sm leading-tight">{c.name}</h3>
+                <span className={`badge flex-shrink-0 ${STAGE_COLORS[c.stage]}`}>
                   {STAGE_LABELS[c.stage]}
                 </span>
               </div>
               {c.sector && (
-                <p className="text-xs text-[#7A7A7A] mb-2">{c.sector}</p>
+                <p className="text-xs text-fourmiliance-muted mb-2">{c.sector}</p>
               )}
               {c.contact_name && (
-                <p className="text-xs text-[#5A5A5A]">Contact : {c.contact_name}</p>
+                <p className="text-xs text-fourmiliance-tertiary">Contact : {c.contact_name}</p>
               )}
               {c.start_date && (
-                <p className="text-xs text-[#9A9A9A] mt-2">
+                <p className="text-xs text-fourmiliance-ghost mt-2">
                   Depuis {formatDate(c.start_date)}
                 </p>
               )}
@@ -182,27 +192,31 @@ function CompanyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E0DAD0]">
-          <h3 className="font-heading text-lg text-fourmiliance-forest">{company.name}</h3>
-          <button onClick={onClose}><X className="w-5 h-5 text-[#9A9A9A]" /></button>
+      <div role="dialog" aria-modal="true" aria-labelledby="company-detail-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
+          <h3 id="company-detail-title" className="font-heading text-lg text-fourmiliance-forest">{company.name}</h3>
+          <button onClick={onClose} aria-label="Fermer" className="p-2 rounded-lg text-fourmiliance-ghost hover:text-fourmiliance-ink hover:bg-fourmiliance-cream-dark transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid">
+            <X className="w-5 h-5" aria-hidden="true" />
+          </button>
         </div>
 
         <div className="p-6 space-y-4">
           {/* Stade */}
           <div>
-            <label className="block text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide mb-2">
+            <p className="block text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide mb-2">
               Stade
-            </label>
-            <div className="flex flex-wrap gap-2">
+            </p>
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Changer de stade">
               {ALL_STAGES.map(s => (
                 <button
                   key={s}
                   onClick={() => void updateStage(s)}
+                  aria-pressed={company.stage === s}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid
                     ${company.stage === s
                       ? `${STAGE_COLORS[s]} border-transparent font-medium`
-                      : 'border-[#E0DAD0] text-[#7A7A7A] hover:border-[#C0B8B0]'
+                      : 'border-fourmiliance-border text-fourmiliance-muted hover:border-fourmiliance-disabled'
                     }`}
                 >
                   {STAGE_LABELS[s]}
@@ -214,49 +228,49 @@ function CompanyModal({
           <div className="grid grid-cols-2 gap-4 text-sm">
             {company.sector && (
               <div>
-                <p className="text-xs text-[#9A9A9A]">Secteur</p>
-                <p className="text-[#2A2A2A]">{company.sector}</p>
+                <p className="text-xs text-fourmiliance-ghost">Secteur</p>
+                <p className="text-fourmiliance-body">{company.sector}</p>
               </div>
             )}
             {company.contact_name && (
               <div>
-                <p className="text-xs text-[#9A9A9A]">Contact</p>
-                <p className="text-[#2A2A2A]">{company.contact_name}</p>
+                <p className="text-xs text-fourmiliance-ghost">Contact</p>
+                <p className="text-fourmiliance-body">{company.contact_name}</p>
               </div>
             )}
             {company.email && (
               <div>
-                <p className="text-xs text-[#9A9A9A]">Email</p>
+                <p className="text-xs text-fourmiliance-ghost">Email</p>
                 <a href={`mailto:${company.email}`}
                   className="text-fourmiliance-mid hover:underline">{company.email}</a>
               </div>
             )}
             {company.phone && (
               <div>
-                <p className="text-xs text-[#9A9A9A]">Téléphone</p>
+                <p className="text-xs text-fourmiliance-ghost">Téléphone</p>
                 <a href={`tel:${company.phone}`}
                   className="text-fourmiliance-mid hover:underline">{company.phone}</a>
               </div>
             )}
             {company.start_date && (
               <div>
-                <p className="text-xs text-[#9A9A9A]">Date d'entrée</p>
-                <p className="text-[#2A2A2A]">{formatDate(company.start_date)}</p>
+                <p className="text-xs text-fourmiliance-ghost">Date d'entrée</p>
+                <p className="text-fourmiliance-body">{formatDate(company.start_date)}</p>
               </div>
             )}
           </div>
 
           {company.description && (
             <div>
-              <p className="text-xs text-[#9A9A9A] mb-1">Description</p>
-              <p className="text-sm text-[#5A5A5A] leading-relaxed">{company.description}</p>
+              <p className="text-xs text-fourmiliance-ghost mb-1">Description</p>
+              <p className="text-sm text-fourmiliance-tertiary leading-relaxed">{company.description}</p>
             </div>
           )}
 
           {company.notes && (
             <div>
-              <p className="text-xs text-[#9A9A9A] mb-1">Notes internes</p>
-              <p className="text-sm text-[#5A5A5A] leading-relaxed whitespace-pre-wrap">{company.notes}</p>
+              <p className="text-xs text-fourmiliance-ghost mb-1">Notes internes</p>
+              <p className="text-sm text-fourmiliance-tertiary leading-relaxed whitespace-pre-wrap">{company.notes}</p>
             </div>
           )}
         </div>
@@ -309,34 +323,36 @@ function CompanyCreateModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E0DAD0]">
-          <h3 className="font-heading text-base text-fourmiliance-forest">Nouvelle entreprise</h3>
-          <button onClick={onClose}><X className="w-5 h-5 text-[#9A9A9A]" /></button>
+      <div role="dialog" aria-modal="true" aria-labelledby="company-create-title" className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
+          <h3 id="company-create-title" className="font-heading text-base text-fourmiliance-forest">Nouvelle entreprise</h3>
+          <button onClick={onClose} aria-label="Fermer" className="p-2 rounded-lg text-fourmiliance-ghost hover:text-fourmiliance-ink hover:bg-fourmiliance-cream-dark transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid">
+            <X className="w-5 h-5" aria-hidden="true" />
+          </button>
         </div>
         <form onSubmit={e => void handleSave(e)} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Nom de l'entreprise *</label>
-            <input required value={form.name}
+            <label htmlFor="ic-name" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Nom de l'entreprise *</label>
+            <input id="ic-name" required value={form.name} aria-required="true"
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+              className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                          focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Secteur</label>
-              <input value={form.sector}
+              <label htmlFor="ic-sector" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Secteur</label>
+              <input id="ic-sector" value={form.sector}
                 onChange={e => setForm(f => ({ ...f, sector: e.target.value }))}
                 placeholder="Tech, Agroalimentaire…"
-                className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Stade</label>
-              <select value={form.stage}
+              <label htmlFor="ic-stage" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Stade</label>
+              <select id="ic-stage" value={form.stage}
                 onChange={e => setForm(f => ({ ...f, stage: e.target.value as IncubatedStage }))}
-                className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30">
                 {ALL_STAGES.map(s => (
                   <option key={s} value={s}>{STAGE_LABELS[s]}</option>
@@ -347,37 +363,38 @@ function CompanyCreateModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Contact</label>
-              <input value={form.contact_name}
+              <label htmlFor="ic-contact" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Contact</label>
+              <input id="ic-contact" value={form.contact_name}
                 onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))}
-                className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Date d'entrée</label>
-              <input type="date" value={form.start_date}
+              <label htmlFor="ic-start-date" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date d'entrée</label>
+              <input id="ic-start-date" type="date" value={form.start_date}
                 onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-                className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm
+                className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                            focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[#5A5A5A] mb-1">Description</label>
-            <textarea rows={3} value={form.description}
+            <label htmlFor="ic-description" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
+            <textarea id="ic-description" rows={3} value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              className="w-full border border-[#E0DAD0] rounded-lg px-3 py-2 text-sm resize-none
+              className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm resize-none
                          focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose}
-              className="px-4 py-2 text-sm text-[#5A5A5A] hover:text-fourmiliance-forest">
+              className="px-4 py-2 text-sm text-fourmiliance-tertiary hover:text-fourmiliance-forest min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid rounded-lg">
               Annuler
             </button>
-            <button type="submit" disabled={saving}
-              className="px-4 py-2 bg-fourmiliance-forest text-white text-sm rounded-lg
-                         hover:bg-fourmiliance-mid transition-colors disabled:opacity-50">
+            <button type="submit" disabled={saving} aria-busy={saving}
+              className="px-4 py-2 bg-fourmiliance-forest text-white text-sm rounded-lg min-h-[44px]
+                         hover:bg-fourmiliance-mid transition-colors disabled:opacity-50
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid">
               {saving ? 'Création…' : 'Créer'}
             </button>
           </div>

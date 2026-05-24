@@ -42,8 +42,7 @@ export default function AssociationPage() {
     <div className="space-y-6">
 
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="rounded-xl overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #1E4010, #2D5A1B)' }}>
+      <div className="rounded-xl overflow-hidden bg-gradient-to-br from-fourmiliance-forest to-fourmiliance-mid">
         <div className="p-8 text-white">
           <div className="flex items-center gap-3 mb-3">
             <Leaf className="w-6 h-6 text-fourmiliance-ocre-light" />
@@ -65,7 +64,7 @@ export default function AssociationPage() {
       </div>
 
       {/* ── Tabs ─────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 bg-[#EDE8DF] p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-fourmiliance-cream-dark p-1 rounded-xl w-fit" role="group" aria-label="Navigation sections">
         {([
           { key: 'membres',     label: 'Membres',     icon: Users },
           { key: 'evenements',  label: 'Événements',  icon: Calendar },
@@ -74,13 +73,15 @@ export default function AssociationPage() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors
+            aria-pressed={tab === key}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors min-h-[44px]
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fourmiliance-mid
               ${tab === key
                 ? 'bg-white text-fourmiliance-forest font-medium shadow-sm'
-                : 'text-[#7A7A7A] hover:text-[#5A5A5A]'
+                : 'text-fourmiliance-muted hover:text-fourmiliance-tertiary'
               }`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-4 h-4" aria-hidden="true" />
             {label}
           </button>
         ))}
@@ -88,39 +89,40 @@ export default function AssociationPage() {
 
       {/* ── Contenu tabs ─────────────────────────────────────────────────── */}
       {tab === 'membres' && (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
           <h2 className="font-heading text-base text-fourmiliance-forest mb-4">
             Membres ({activeMembers.length} actifs)
           </h2>
           {loadingMembers ? (
-            <p className="text-sm text-[#9A9A9A]">Chargement…</p>
+            <div className="flex justify-center py-8">
+              <div className="w-6 h-6 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-label="Chargement des membres" />
+            </div>
           ) : members.length === 0 ? (
-            <p className="text-sm text-[#9A9A9A]">Aucun membre enregistré.</p>
+            <p className="text-sm text-fourmiliance-ghost">Aucun membre enregistré.</p>
           ) : (
             <div className="overflow-x-auto -mx-2">
               <table className="w-full text-sm min-w-[420px]">
                 <thead>
-                  <tr className="text-left border-b border-[#E0DAD0]">
-                    <th className="px-2 pb-2 text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Nom</th>
-                    <th className="px-2 pb-2 text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Rôle</th>
-                    <th className="px-2 pb-2 text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Adhésion</th>
-                    <th className="px-2 pb-2 text-xs font-semibold text-[#7A7A7A] uppercase tracking-wide">Statut</th>
+                  <tr className="text-left border-b border-fourmiliance-border">
+                    <th className="px-2 pb-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">Nom</th>
+                    <th className="px-2 pb-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">Rôle</th>
+                    <th className="px-2 pb-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">Adhésion</th>
+                    <th className="px-2 pb-2 text-xs font-semibold text-fourmiliance-muted uppercase tracking-wide">Statut</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F0EBE4]">
+                <tbody className="divide-y divide-fourmiliance-track">
                   {members.map(m => (
-                    <tr key={m.id} className="hover:bg-[#FAFAF8]">
+                    <tr key={m.id} className="hover:bg-fourmiliance-surface">
                       <td className="px-2 py-2.5">
-                        <p className="font-medium text-[#2A2A2A]">{m.full_name}</p>
-                        {m.email && <p className="text-xs text-[#9A9A9A]">{m.email}</p>}
+                        <p className="font-medium text-fourmiliance-body">{m.full_name}</p>
+                        {m.email && <p className="text-xs text-fourmiliance-ghost">{m.email}</p>}
                       </td>
-                      <td className="px-2 py-2.5 text-[#5A5A5A] text-xs">{m.role ?? '—'}</td>
-                      <td className="px-2 py-2.5 text-xs text-[#7A7A7A] whitespace-nowrap">
+                      <td className="px-2 py-2.5 text-fourmiliance-tertiary text-xs">{m.role ?? '—'}</td>
+                      <td className="px-2 py-2.5 text-xs text-fourmiliance-muted whitespace-nowrap">
                         {m.joined_date ? formatDate(m.joined_date) : '—'}
                       </td>
                       <td className="px-2 py-2.5">
-                        <span className={`text-xs px-2 py-0.5 rounded-full
-                          ${m.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        <span className={`badge ${m.active ? 'badge-green' : 'badge-neutral'}`}>
                           {m.active ? 'Actif' : 'Inactif'}
                         </span>
                       </td>
@@ -134,24 +136,24 @@ export default function AssociationPage() {
       )}
 
       {tab === 'evenements' && (
-        <div className="bg-white rounded-xl border border-[#E0DAD0] p-6">
+        <div className="bg-white rounded-xl border border-fourmiliance-border p-6">
           <h2 className="font-heading text-base text-fourmiliance-forest mb-4">
             Événements à venir
           </h2>
           {events.length === 0 ? (
-            <p className="text-sm text-[#9A9A9A]">Aucun événement planifié.</p>
+            <p className="text-sm text-fourmiliance-ghost">Aucun événement planifié.</p>
           ) : (
             <div className="space-y-3">
               {events.map(e => (
                 <div key={e.id}
-                  className="flex gap-4 p-4 border border-[#E0DAD0] rounded-xl">
+                  className="flex gap-4 p-4 border border-fourmiliance-border rounded-xl">
                   <div className="bg-fourmiliance-forest/10 rounded-lg px-3 py-2 text-center flex-shrink-0">
                     {e.date ? (
                       <>
                         <p className="text-lg font-heading font-semibold text-fourmiliance-forest leading-none">
                           {new Date(e.date).getDate()}
                         </p>
-                        <p className="text-[10px] text-[#7A7A7A] uppercase">
+                        <p className="text-[10px] text-fourmiliance-muted uppercase">
                           {new Date(e.date).toLocaleDateString('fr-FR', { month: 'short' })}
                         </p>
                       </>
@@ -160,14 +162,14 @@ export default function AssociationPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1A1A1A]">{e.title}</p>
+                    <p className="text-sm font-semibold text-fourmiliance-ink">{e.title}</p>
                     {e.description && (
-                      <p className="text-xs text-[#5A5A5A] mt-0.5 leading-relaxed">{e.description}</p>
+                      <p className="text-xs text-fourmiliance-tertiary mt-0.5 leading-relaxed">{e.description}</p>
                     )}
                     {e.location && (
                       <div className="flex items-center gap-1 mt-1.5">
-                        <MapPin className="w-3 h-3 text-[#9A9A9A]" />
-                        <span className="text-xs text-[#7A7A7A]">{e.location}</span>
+                        <MapPin className="w-3 h-3 text-fourmiliance-ghost" />
+                        <span className="text-xs text-fourmiliance-muted">{e.location}</span>
                       </div>
                     )}
                   </div>

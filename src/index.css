@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+    background-color: #F9F6F0;
+    color: #1A1A1A;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #E4DDD4;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9A9A9A;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-fourmiliance-mid hover:bg-fourmiliance-light text-white font-medium px-4 py-2 rounded-ui transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-fourmiliance-ocre hover:bg-fourmiliance-ocre-dark text-white font-medium px-4 py-2 rounded-ui transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-black/5 text-fourmiliance-mid font-medium px-4 py-2 rounded-ui transition-colors duration-150;
+  }
+
+  .card {
+    @apply bg-white rounded-card shadow-card border border-[#E4DDD4] p-6;
+  }
+
+  .input {
+    @apply w-full border border-[#E4DDD4] rounded-ui px-3 py-2 text-sm text-[#1A1A1A] bg-white placeholder-[#9A9A9A] focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30 focus:border-fourmiliance-mid transition-colors duration-150;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-[#5A5A5A] mb-1;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+}

@@ -17,40 +17,31 @@
       rel="stylesheet"
     />
 
-    <!-- Spinner HTML natif (visible avant que React monte) -->
     <style>
-      #root-loader {
-        position: fixed; inset: 0;
-        display: flex; align-items: center; justify-content: center;
-        background: #F5F0E8;
-      }
-      #root-loader svg {
-        width: 36px; height: 36px;
-        animation: spin 0.8s linear infinite;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      #root:not(:empty) + #root-loader,
-      #root-loader.hidden { display: none; }
+      @keyframes fh-spin { to { transform: rotate(360deg); } }
     </style>
   </head>
   <body>
-    <div id="root"></div>
-    <div id="root-loader" aria-label="Chargement…" role="status">
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="18" cy="18" r="15" stroke="#D4C5A9" stroke-width="3"/>
-        <path d="M18 3 A15 15 0 0 1 33 18" stroke="#2D5A1B" stroke-width="3" stroke-linecap="round"/>
-      </svg>
+    <!--
+      Le spinner est à l'intérieur de #root :
+      React le remplace automatiquement au montage, sans flash blanc.
+    -->
+    <div id="root">
+      <div style="
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #F5F0E8;
+      ">
+        <svg
+          style="width:36px;height:36px;animation:fh-spin 0.8s linear infinite"
+          viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"
+          aria-label="Chargement…" role="status"
+        >
+          <circle cx="18" cy="18" r="15" stroke="#D4C5A9" stroke-width="3"/>
+          <path d="M18 3 A15 15 0 0 1 33 18" stroke="#2D5A1B" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
     </div>
-    <script>
-      // Masquer le loader dès que React prend la main
-      new MutationObserver(function(_, obs) {
-        var root = document.getElementById('root');
-        if (root && root.firstChild) {
-          document.getElementById('root-loader').classList.add('hidden');
-          obs.disconnect();
-        }
-      }).observe(document.getElementById('root'), { childList: true });
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -178,7 +178,6 @@ function KanbanCard({
 
   const isDevis   = contact.pipeline_stage === 'devis'
   const isSigne   = contact.pipeline_stage === 'signe'
-  const isEnCours = contact.pipeline_stage === 'en_cours'
   const isLivre   = contact.pipeline_stage === 'livre'
 
   function handleDragStart(e: React.DragEvent) {
@@ -247,18 +246,6 @@ function KanbanCard({
           <span className="font-normal text-fourmiliance-ghost">
             {isDevis ? ' · En attente' : ' · Signé'}
           </span>
-        </div>
-      )}
-
-      {/* Barre de progression (en cours) */}
-      {isEnCours && (
-        <div className="mb-2">
-          <div className="h-1.5 bg-fourmiliance-cream-dark rounded-full overflow-hidden">
-            <div
-              className="h-full bg-fourmiliance-mid rounded-full transition-all"
-              style={{ width: '50%' }}
-            />
-          </div>
         </div>
       )}
 

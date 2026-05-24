@@ -172,7 +172,7 @@ export default function FinancePage() {
             </span>
           )}
         </div>
-        {maxBar === 0 ? (
+        {chartBars.every(b => b.amount === 0) ? (
           <div className="h-36 flex flex-col items-center justify-center gap-2">
             <TrendingUp className="w-8 h-8 text-fourmiliance-disabled" aria-hidden="true" />
             <p className="text-sm text-fourmiliance-ghost">Aucune facture payée sur cette période</p>

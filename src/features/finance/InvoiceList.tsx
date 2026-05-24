@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal, Trash2, XCircle } from 'lucide-react'
+import { Download, CheckCircle, Send, Clock, Plus, SlidersHorizontal, Trash2, XCircle, Pencil } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact, Invoice } from '../../types'
 import {
@@ -51,6 +51,7 @@ export default function InvoiceList() {
   const qc = useQueryClient()
   const { show: showToast } = useToast()
   const [showForm, setShowForm]           = useState(false)
+  const [editInvoice, setEditInvoice]     = useState<InvoiceRow | null>(null)
   const [typeFilter, setTypeFilter]       = useState<'all' | 'devis' | 'facture'>('all')
   const [statusFilter, setStatusFilter]   = useState<InvoiceStatus | 'all'>('all')
   const [pdfLoading, setPdfLoading]       = useState<string | null>(null)
@@ -225,6 +226,17 @@ export default function InvoiceList() {
                           }
                         </button>
 
+                        {/* Modifier brouillon */}
+                        {inv.status === 'brouillon' && (
+                          <button
+                            aria-label={`Modifier le brouillon ${inv.number}`}
+                            onClick={() => setEditInvoice(inv)}
+                            className="p-2 rounded hover:bg-fourmiliance-surface text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                          >
+                            <Pencil className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        )}
+
                         {/* Marquer envoyé */}
                         {inv.status === 'brouillon' && (
                           <button
@@ -294,11 +306,20 @@ export default function InvoiceList() {
         </div>
       )}
 
-      {/* ── Formulaire modal ── */}
+      {/* ── Formulaire modal création ── */}
       {showForm && (
         <InvoiceForm
           onClose={() => setShowForm(false)}
           onSuccess={() => setShowForm(false)}
+        />
+      )}
+
+      {/* ── Formulaire modal édition brouillon ── */}
+      {editInvoice && (
+        <InvoiceForm
+          invoice={editInvoice}
+          onClose={() => setEditInvoice(null)}
+          onSuccess={() => setEditInvoice(null)}
         />
       )}
     </>

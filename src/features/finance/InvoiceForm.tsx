@@ -67,16 +67,36 @@ interface InvoiceFormProps {
   onSuccess:        () => void
   initialProjectId?: string
   initialContactId?: string
+  invoice?:         import('../../types').Invoice
 }
 
-export default function InvoiceForm({ onClose, onSuccess, initialProjectId, initialContactId }: InvoiceFormProps) {
+export default function InvoiceForm({ onClose, onSuccess, initialProjectId, initialContactId, invoice }: InvoiceFormProps) {
   const { user }   = useAuth()
   const qc         = useQueryClient()
   const { show: showToast } = useToast()
-  const [form, setForm]     = useState<FormState>({
-    ...DEFAULT,
-    ...(initialProjectId ? { project_id: initialProjectId } : {}),
-    ...(initialContactId ? { contact_id: initialContactId } : {}),
+  const isEdit = !!invoice
+  const [form, setForm]     = useState<FormState>(() => {
+    if (invoice) {
+      return {
+        type:        invoice.type,
+        contact_id:  invoice.contact_id  ?? '',
+        project_id:  invoice.project_id  ?? '',
+        issued_date: invoice.issued_date,
+        due_date:    invoice.due_date    ?? '',
+        tva_rate:    invoice.tva_rate,
+        notes:       invoice.notes       ?? '',
+        items:       invoice.line_items.map(li => ({
+          description: li.description,
+          quantity:    li.quantity,
+          unit_price:  li.unit_price,
+        })),
+      }
+    }
+    return {
+      ...DEFAULT,
+      ...(initialProjectId ? { project_id: initialProjectId } : {}),
+      ...(initialContactId ? { contact_id: initialContactId } : {}),
+    }
   })
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
@@ -171,7 +191,6 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
     setSaving(true)
     setError(null)
     try {
-      const number    = await generateNumber(form.type)
       const lineItems = form.items.map(i => ({
         description: i.description,
         quantity:    i.quantity,
@@ -179,34 +198,53 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
         total:       i.quantity * i.unit_price,
       }))
 
-      const { error: err } = await supabase.from('invoices').insert({
-        number,
-        type:       form.type,
-        contact_id: form.contact_id  || null,
-        project_id: form.project_id  || null,
-        amount_ht:  amountHt,
-        tva_rate:   form.tva_rate,
-        issued_date: form.issued_date,
-        due_date:   form.due_date    || null,
-        notes:      form.notes       || null,
-        line_items: lineItems,
-        status:     'brouillon',
-      })
-      if (err) throw err
+      if (isEdit && invoice) {
+        const { error: err } = await supabase.from('invoices').update({
+          type:        form.type,
+          contact_id:  form.contact_id  || null,
+          project_id:  form.project_id  || null,
+          amount_ht:   amountHt,
+          tva_rate:    form.tva_rate,
+          issued_date: form.issued_date,
+          due_date:    form.due_date    || null,
+          notes:       form.notes       || null,
+          line_items:  lineItems,
+        }).eq('id', invoice.id)
+        if (err) throw err
+        qc.invalidateQueries({ queryKey: ['invoices'] })
+        qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
+        qc.invalidateQueries({ queryKey: ['invoices', 'project'] })
+        showToast(`Document mis à jour : ${invoice.number}`)
+      } else {
+        const number = await generateNumber(form.type)
+        const { error: err } = await supabase.from('invoices').insert({
+          number,
+          type:        form.type,
+          contact_id:  form.contact_id  || null,
+          project_id:  form.project_id  || null,
+          amount_ht:   amountHt,
+          tva_rate:    form.tva_rate,
+          issued_date: form.issued_date,
+          due_date:    form.due_date    || null,
+          notes:       form.notes       || null,
+          line_items:  lineItems,
+          status:      'brouillon',
+        })
+        if (err) throw err
+        await supabase.from('activity_log').insert({
+          user_id:      user?.id ?? null,
+          action:       form.type === 'devis' ? 'devis_created' : 'invoice_created',
+          entity_type:  'invoice',
+          entity_label: number,
+        })
+        qc.invalidateQueries({ queryKey: ['invoices'] })
+        qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
+        showToast(`${form.type === 'devis' ? 'Devis' : 'Facture'} créé${form.type === 'facture' ? 'e' : ''} : ${number}`)
+      }
 
-      await supabase.from('activity_log').insert({
-        user_id:      user?.id ?? null,
-        action:       form.type === 'devis' ? 'devis_created' : 'invoice_created',
-        entity_type:  'invoice',
-        entity_label: number,
-      })
-
-      qc.invalidateQueries({ queryKey: ['invoices'] })
-      qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
-      showToast(`${form.type === 'devis' ? 'Devis' : 'Facture'} créé${form.type === 'facture' ? 'e' : ''} : ${number}`)
       onSuccess()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la création.')
+      setError(e instanceof Error ? e.message : isEdit ? 'Erreur lors de la modification.' : 'Erreur lors de la création.')
     } finally {
       setSaving(false)
     }
@@ -226,7 +264,7 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-fourmiliance-border">
           <h2 id="invoice-form-title" className="font-heading text-lg text-fourmiliance-forest">
-            Nouveau document
+            {isEdit ? `Modifier ${invoice!.number}` : 'Nouveau document'}
           </h2>
           <button
             onClick={onClose}
@@ -448,7 +486,9 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
 
           {/* Footer */}
           <div className="px-6 py-4 border-t border-[#E0DAD0] flex items-center justify-between bg-white sticky bottom-0">
-            <span className="text-xs text-[#9A9A9A]">Numéro généré automatiquement</span>
+            <span className="text-xs text-[#9A9A9A]">
+              {isEdit ? `Brouillon ${invoice!.number}` : 'Numéro généré automatiquement'}
+            </span>
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -463,8 +503,10 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
                 className="px-5 py-2 bg-fourmiliance-mid hover:bg-fourmiliance-light text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
               >
                 {saving
-                  ? 'Création…'
-                  : `Créer ${form.type === 'devis' ? 'le devis' : 'la facture'}`}
+                  ? (isEdit ? 'Sauvegarde…' : 'Création…')
+                  : isEdit
+                    ? 'Enregistrer'
+                    : `Créer ${form.type === 'devis' ? 'le devis' : 'la facture'}`}
               </button>
             </div>
           </div>

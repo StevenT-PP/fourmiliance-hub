@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { X, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
@@ -188,6 +188,12 @@ function CompanyModal({
 }) {
   const { show: showToast } = useToast()
 
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   async function updateStage(stage: IncubatedStage) {
     const { error } = await supabase.from('incubated_companies').update({ stage }).eq('id', company.id)
     if (error) { showToast('Erreur lors de la mise à jour', 'error'); return }
@@ -296,6 +302,13 @@ function CompanyCreateModal({
   onSaved: () => void
 }) {
   const { show: showToast } = useToast()
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   const [form, setForm] = useState({
     name:         '',
     sector:       '',

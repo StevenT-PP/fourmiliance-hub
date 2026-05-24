@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
@@ -1073,6 +1073,12 @@ function TaskPanel({
   const [newSubtitle, setNewSubtitle] = useState('')
   const [addingSub, setAddingSub]   = useState(false)
   const { show: showToast } = useToast()
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
 
   const updateMutation = useMutation({
     mutationFn: async () => {

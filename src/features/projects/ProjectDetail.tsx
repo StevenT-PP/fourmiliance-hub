@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft, Copy, Check, CheckCircle2, Circle, ChevronDown, ChevronRight,
-  Plus, Download, Pencil,
+  Plus, Download, Pencil, ExternalLink,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Task, Deliverable, Profile } from '../../types'
@@ -32,6 +32,7 @@ interface ProjectFull {
   budget: number | null
   description: string | null
   contact_id: string | null
+  client_id: string | null
   contact: { id: string; company: string; contact_name: string } | null
 }
 
@@ -230,20 +231,33 @@ export default function ProjectDetail() {
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
+                  {project.client_id && (
+                    <a
+                      href={`/client/${id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Ouvrir le portail client dans un nouvel onglet"
+                      className="flex items-center gap-1.5 text-sm bg-fourmiliance-mid text-white
+                                 px-3 py-1.5 rounded-lg hover:bg-fourmiliance-light transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" aria-hidden="true" />
+                      Ouvrir portail
+                    </a>
+                  )}
                   <button
                     onClick={copyClientLink}
                     className="flex items-center gap-1.5 text-sm border border-fourmiliance-border px-3 py-1.5
                                rounded-lg hover:bg-fourmiliance-cream transition-colors"
                   >
                     {copiedLink ? <Check className="w-4 h-4 text-fourmiliance-mid" /> : <Copy className="w-4 h-4" />}
-                    {copiedLink ? 'Copié !' : 'Portail client'}
+                    {copiedLink ? 'Copié !' : 'Copier lien portail'}
                   </button>
                   <button
                     onClick={() => setEditHeader(true)}
                     className="flex items-center gap-1.5 text-sm bg-fourmiliance-forest text-white
                                px-3 py-1.5 rounded-lg hover:bg-fourmiliance-mid transition-colors"
                   >
-                    <Pencil className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" aria-hidden="true" />
                     Modifier
                   </button>
                 </div>

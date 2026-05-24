@@ -27,6 +27,7 @@ interface ProjectRow {
   start_date: string | null
   end_date: string | null
   budget: number | null
+  client_id: string | null
   contact: { id: string; company: string; contact_name: string } | null
   tasks: { id: string; status: string }[]
 }
@@ -401,12 +402,17 @@ function ProjectCard({
             : '—'
           }
         </div>
-        {project.budget != null && (
-          <div className="flex items-center gap-1">
-            <Euro className="w-3.5 h-3.5" />
-            {formatCurrency(project.budget)}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {project.client_id && (
+            <span className="badge badge-green text-[10px] px-1.5 py-0.5">Portail actif</span>
+          )}
+          {project.budget != null && (
+            <div className="flex items-center gap-1">
+              <Euro className="w-3.5 h-3.5" />
+              {formatCurrency(project.budget)}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

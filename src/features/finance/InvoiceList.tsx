@@ -48,9 +48,10 @@ function effectiveStatus(inv: InvoiceRow): InvoiceStatus {
 
 export default function InvoiceList() {
   const qc = useQueryClient()
-  const [showForm, setShowForm]       = useState(false)
-  const [typeFilter, setTypeFilter]   = useState<'all' | 'devis' | 'facture'>('all')
-  const [statusFilter, setStatusFilter] = useState<InvoiceStatus | 'all'>('all')
+  const [showForm, setShowForm]           = useState(false)
+  const [typeFilter, setTypeFilter]       = useState<'all' | 'devis' | 'facture'>('all')
+  const [statusFilter, setStatusFilter]   = useState<InvoiceStatus | 'all'>('all')
+  const [pdfLoading, setPdfLoading]       = useState<string | null>(null)
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
@@ -188,11 +189,18 @@ export default function InvoiceList() {
 
                         {/* Télécharger PDF */}
                         <button
-                          aria-label={`Télécharger le PDF ${inv.number}`}
-                          onClick={() => downloadPDF(inv)}
-                          className="p-2 rounded hover:bg-fourmiliance-track text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                          aria-label={pdfLoading === inv.id ? 'Génération du PDF en cours…' : `Télécharger le PDF ${inv.number}`}
+                          disabled={pdfLoading === inv.id}
+                          onClick={async () => {
+                            setPdfLoading(inv.id)
+                            try { await downloadPDF(inv) } finally { setPdfLoading(null) }
+                          }}
+                          className="p-2 rounded hover:bg-fourmiliance-track text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center disabled:opacity-50"
                         >
-                          <Download className="w-4 h-4" aria-hidden="true" />
+                          {pdfLoading === inv.id
+                            ? <span className="w-4 h-4 border-2 border-fourmiliance-mid border-t-transparent rounded-full animate-spin" role="status" aria-hidden="true" />
+                            : <Download className="w-4 h-4" aria-hidden="true" />
+                          }
                         </button>
 
                         {/* Marquer envoyé */}

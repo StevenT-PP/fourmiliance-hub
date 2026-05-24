@@ -207,6 +207,7 @@ export default function ProjectDetail() {
                 setEditHeader(false)
                 queryClient.invalidateQueries({ queryKey: ['project', id] })
                 queryClient.invalidateQueries({ queryKey: ['projects'] })
+                queryClient.invalidateQueries({ queryKey: ['portal-hub'] })
               }}
             />
           ) : (

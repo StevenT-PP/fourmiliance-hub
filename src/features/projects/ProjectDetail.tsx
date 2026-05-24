@@ -417,8 +417,22 @@ function EditHeaderForm({
     end_date:   project.end_date   ?? '',
     budget:     project.budget != null ? String(project.budget) : '',
     description: project.description ?? '',
+    client_id:  project.client_id ?? '',
   })
   const [saving, setSaving] = useState(false)
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ['profiles', 'clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('role', 'client')
+        .order('full_name')
+      if (error) throw error
+      return (data ?? []) as { id: string; full_name: string }[]
+    },
+  })
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -431,6 +445,7 @@ function EditHeaderForm({
       end_date:    form.end_date   || null,
       budget:      form.budget ? parseFloat(form.budget) : null,
       description: form.description || null,
+      client_id:   form.client_id || null,
     }).eq('id', project.id)
     setSaving(false)
     onSaved()
@@ -496,6 +511,25 @@ function EditHeaderForm({
             onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">
+            Compte client portail
+          </label>
+          <select
+            value={form.client_id}
+            onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))}
+            className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30"
+          >
+            <option value="">— Aucun portail actif —</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.full_name}</option>
+            ))}
+          </select>
+          <p className="text-xs text-fourmiliance-ghost mt-1">
+            Lie un compte client pour activer l'accès portail.
+          </p>
         </div>
       </div>
       <div className="flex justify-end gap-3">

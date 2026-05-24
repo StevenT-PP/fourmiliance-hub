@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Plus, Search, Calendar, Euro, FolderKanban } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import type { Contact } from '../../types'
@@ -47,6 +47,7 @@ const emptyForm: NewProjectForm = {
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
+  const { state } = useLocation()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [typeFilter, setTypeFilter]     = useState<ServiceType | ''>('')
@@ -55,6 +56,17 @@ export default function ProjectsPage() {
   const [form, setForm]                 = useState<NewProjectForm>(emptyForm)
   const [saving, setSaving]             = useState(false)
   const [saveError, setSaveError]       = useState<string | null>(null)
+
+  useEffect(() => {
+    if (state?.openCreate) {
+      setShowModal(true)
+      setSaveError(null)
+      if (state.contactId) {
+        setForm(f => ({ ...f, contact_id: state.contactId }))
+      }
+      window.history.replaceState({}, '')
+    }
+  }, [])
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ['projects'],

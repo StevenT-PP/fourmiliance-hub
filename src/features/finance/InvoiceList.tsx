@@ -200,7 +200,13 @@ export default function InvoiceList() {
                           disabled={pdfLoading === inv.id}
                           onClick={async () => {
                             setPdfLoading(inv.id)
-                            try { await downloadPDF(inv) } finally { setPdfLoading(null) }
+                            try {
+                              await downloadPDF(inv)
+                            } catch {
+                              showToast('Erreur lors de la génération du PDF', 'error')
+                            } finally {
+                              setPdfLoading(null)
+                            }
                           }}
                           className="p-2 rounded hover:bg-fourmiliance-track text-fourmiliance-ghost hover:text-fourmiliance-mid transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center disabled:opacity-50"
                         >

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 import type { Contact, ContactNote, ContactTask, Project } from '../../types'
 import {
   PIPELINE_LABELS,
@@ -33,6 +34,7 @@ export default function ContactDetail() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
 
+  const { show: showToast } = useToast()
   const [showEditForm,  setShowEditForm]  = useState(false)
   const [noteContent,   setNoteContent]   = useState('')
   const [noteType,      setNoteType]      = useState<NoteType>('note')
@@ -120,7 +122,9 @@ export default function ContactDetail() {
     onSuccess: () => {
       setNoteContent('')
       void queryClient.invalidateQueries({ queryKey: ['contact-notes', id] })
+      showToast('Interaction enregistrée')
     },
+    onError: () => showToast("Erreur lors de l'enregistrement", 'error'),
   })
 
   const toggleTask = useMutation({
@@ -149,7 +153,9 @@ export default function ContactDetail() {
       setNewTaskTitle('')
       setNewTaskDue('')
       void queryClient.invalidateQueries({ queryKey: ['contact-tasks', id] })
+      showToast('Tâche ajoutée')
     },
+    onError: () => showToast("Erreur lors de l'ajout", 'error'),
   })
 
   // ── Loading / error ───────────────────────────────────────────────────────
@@ -208,6 +214,7 @@ export default function ContactDetail() {
             Modifier
           </button>
           <button
+            onClick={() => navigate('/app/projects', { state: { openCreate: true, contactId: contact.id, contactName: contact.company } })}
             className="flex items-center gap-1.5 bg-fourmiliance-mid text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-fourmiliance-forest transition-colors"
           >
             <FolderPlus size={13} />

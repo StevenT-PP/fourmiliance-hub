@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import type { Contact, Project } from '../../types'
 import { formatCurrency } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../hooks/useToast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ interface InvoiceFormProps {
 export default function InvoiceForm({ onClose, onSuccess, initialProjectId, initialContactId }: InvoiceFormProps) {
   const { user }   = useAuth()
   const qc         = useQueryClient()
+  const { show: showToast } = useToast()
   const [form, setForm]     = useState<FormState>({
     ...DEFAULT,
     ...(initialProjectId ? { project_id: initialProjectId } : {}),
@@ -192,6 +194,8 @@ export default function InvoiceForm({ onClose, onSuccess, initialProjectId, init
       })
 
       qc.invalidateQueries({ queryKey: ['invoices'] })
+      qc.invalidateQueries({ queryKey: ['invoices-kpi'] })
+      showToast(`${form.type === 'devis' ? 'Devis' : 'Facture'} créé${form.type === 'facture' ? 'e' : ''} : ${number}`)
       onSuccess()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la création.')

@@ -34,16 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Lecture localStorage — pas de réseau, débloque l'UI immédiatement
+    // Timeout 6s au cas où getSession() accroche sur un refresh réseau
+    const fallback = setTimeout(() => setLoading(false), 6_000)
+
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        clearTimeout(fallback)
         if (session?.user) {
           setUser(session.user)
-          setProfile(getCachedProfile())  // null si première visite
+          setProfile(getCachedProfile())
         }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => { clearTimeout(fallback); setLoading(false) })
 
     // Mises à jour auth : connexion, déconnexion, refresh token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -51,8 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setUser(session.user)
 
-          // Fetch / rafraîchit le profil en arrière-plan
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
@@ -61,8 +63,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (data) {
             setProfile(data as Profile)
             localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(data))
+          } else if (error) {
+            // Supabase indisponible (pausé, réseau) → utiliser le cache si dispo
+            const cached = getCachedProfile()
+            if (cached) {
+              setProfile(cached)
+            } else {
+              void supabase.auth.signOut()
+              setUser(null)
+              setProfile(null)
+            }
           } else {
-            // Utilisateur sans profil — déconnexion forcée
+            // Utilisateur sans profil en base — déconnexion forcée
             void supabase.auth.signOut()
             setUser(null)
             setProfile(null)

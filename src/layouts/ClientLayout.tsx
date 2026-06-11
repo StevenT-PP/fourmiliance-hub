@@ -40,13 +40,15 @@ export default function ClientLayout() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             {/* Logo */}
-            <div className="w-8 h-8 rounded-lg bg-fourmiliance-mid flex items-center justify-center flex-shrink-0">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white" aria-hidden="true">
-                <path d="M12 3C9 3 6.5 5.5 6.5 8.5c0 2 .9 3.8 2.3 5L12 17l3.2-3.5c1.4-1.2 2.3-3 2.3-5C17.5 5.5 15 3 12 3zm0 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
-              </svg>
-            </div>
-            <span className="font-heading text-fourmiliance-forest font-semibold text-sm flex-shrink-0">
-              Fourmiliance
+            <svg viewBox="0 0 32 22" className="w-8 h-6 flex-shrink-0" aria-hidden="true">
+              <circle cx="2.5" cy="17.5" r="1.8" fill="#2D5A1B" opacity="0.33"/>
+              <circle cx="8"   cy="12"   r="2.3" fill="#2D5A1B" opacity="0.52"/>
+              <circle cx="14.5" cy="8"   r="2.8" fill="#2D5A1B" opacity="0.72"/>
+              <circle cx="22"  cy="6"    r="2.8" fill="#2D5A1B" opacity="0.9"/>
+              <circle cx="29.5" cy="9"   r="2.2" fill="#2D5A1B" opacity="0.58"/>
+            </svg>
+            <span className="font-brand italic text-fourmiliance-forest font-normal text-[1rem] leading-none flex-shrink-0">
+              fourmiliance
             </span>
             {project && (
               <>

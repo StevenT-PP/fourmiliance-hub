@@ -153,7 +153,7 @@ export default function DashboardPage() {
     }, {})
 
     return { caMois, pipelineCounts }
-  }, [invoices, pipeline, projects])
+  }, [invoices, pipeline])
 
   const maxPipeline = Math.max(...Object.values(kpis.pipelineCounts), 1)
 

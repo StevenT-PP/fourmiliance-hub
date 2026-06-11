@@ -512,8 +512,9 @@ function EditHeaderForm({
     <form onSubmit={handleSave} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Nom *</label>
+          <label htmlFor="eh-name" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Nom *</label>
           <input
+            id="eh-name"
             required
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -522,8 +523,9 @@ function EditHeaderForm({
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Type</label>
+          <label htmlFor="eh-type" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Type</label>
           <select
+            id="eh-type"
             value={form.type}
             onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
@@ -536,8 +538,9 @@ function EditHeaderForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
+          <label htmlFor="eh-status" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
           <select
+            id="eh-status"
             value={form.status}
             onChange={e => setForm(f => ({ ...f, status: e.target.value as ProjectStatus }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
@@ -549,29 +552,30 @@ function EditHeaderForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date début</label>
-          <input type="date" value={form.start_date}
+          <label htmlFor="eh-start" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date début</label>
+          <input id="eh-start" type="date" value={form.start_date}
             onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date fin</label>
-          <input type="date" value={form.end_date}
+          <label htmlFor="eh-end" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date fin</label>
+          <input id="eh-end" type="date" value={form.end_date}
             onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Budget (€ HT)</label>
-          <input type="number" min="0" value={form.budget}
+          <label htmlFor="eh-budget" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Budget (€ HT)</label>
+          <input id="eh-budget" type="number" min="0" value={form.budget}
             onChange={e => setForm(f => ({ ...f, budget: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
                        focus:outline-none focus:ring-2 focus:ring-fourmiliance-mid/30" />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
+          <label htmlFor="eh-desc" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
           <textarea
+            id="eh-desc"
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
             rows={2}
@@ -581,10 +585,11 @@ function EditHeaderForm({
           />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">
+          <label htmlFor="eh-client" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">
             Compte client portail
           </label>
           <select
+            id="eh-client"
             value={form.client_id}
             onChange={e => setForm(f => ({ ...f, client_id: e.target.value }))}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
@@ -1129,8 +1134,9 @@ function TaskPanel({
       <div className="flex-1 overflow-auto p-5 space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Titre</label>
+          <label htmlFor="tp-title" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Titre</label>
           <textarea
+            id="tp-title"
             value={title}
             onChange={e => setTitle(e.target.value)}
             rows={2}
@@ -1142,8 +1148,9 @@ function TaskPanel({
         {/* Status + Priority */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
+            <label htmlFor="tp-status" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Statut</label>
             <select
+              id="tp-status"
               value={status}
               onChange={e => setStatus(e.target.value as TaskStatus)}
               className="w-full border border-fourmiliance-border rounded-lg px-2 py-1.5 text-xs
@@ -1155,8 +1162,9 @@ function TaskPanel({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Priorité</label>
+            <label htmlFor="tp-priority" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Priorité</label>
             <select
+              id="tp-priority"
               value={priority}
               onChange={e => setPriority(e.target.value as TaskPriority)}
               className="w-full border border-fourmiliance-border rounded-lg px-2 py-1.5 text-xs
@@ -1171,8 +1179,9 @@ function TaskPanel({
 
         {/* Assigné */}
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Assigné à</label>
+          <label htmlFor="tp-assignee" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Assigné à</label>
           <select
+            id="tp-assignee"
             value={assignedTo}
             onChange={e => setAssignedTo(e.target.value)}
             className="w-full border border-fourmiliance-border rounded-lg px-3 py-2 text-sm
@@ -1187,8 +1196,9 @@ function TaskPanel({
 
         {/* Date limite */}
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date limite</label>
+          <label htmlFor="tp-due" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Date limite</label>
           <input
+            id="tp-due"
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
@@ -1199,8 +1209,9 @@ function TaskPanel({
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
+          <label htmlFor="tp-desc" className="block text-xs font-medium text-fourmiliance-tertiary mb-1">Description</label>
           <textarea
+            id="tp-desc"
             value={description}
             onChange={e => setDescription(e.target.value)}
             rows={3}

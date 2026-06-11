@@ -40,6 +40,7 @@ export default {
         },
       },
       fontFamily: {
+        brand:   ['"Cormorant Garamond"', 'Georgia', 'serif'],
         heading: ['"Playfair Display"', 'serif'],
         body:    ['Inter', 'sans-serif'],
       },

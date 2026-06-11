@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth.tsx'
 import { ToastProvider } from './hooks/useToast'
@@ -20,6 +20,12 @@ const MyTasksPage     = lazy(() => import('./features/team/MyTasksPage'))
 const AssociationPage = lazy(() => import('./features/association/AssociationPage'))
 const IncubateurPage  = lazy(() => import('./features/incubateur/IncubateurPage'))
 const SettingsPage    = lazy(() => import('./features/settings/SettingsPage'))
+// ─── Call Center ──────────────────────────────────────────────────────────────
+const LeadsPage       = lazy(() => import('./features/calls/LeadsPage'))
+const CallSessionPage = lazy(() => import('./features/calls/CallSessionPage'))
+const SupervisionPage = lazy(() => import('./features/calls/SupervisionPage'))
+const CampaignsPage   = lazy(() => import('./features/calls/CampaignsPage'))
+const ProductsPage    = lazy(() => import('./features/calls/ProductsPage'))
 
 function PageLoader() {
   return (
@@ -37,6 +43,15 @@ function ProtectedRoute({
   roles?: string[]
 }) {
   const { user, profile, loading } = useAuth()
+  const [profileTimeout, setProfileTimeout] = useState(false)
+
+  // Timeout 10s : si le profil ne se charge pas, rediriger vers /login
+  useEffect(() => {
+    if (!loading && user && !profile) {
+      const t = setTimeout(() => setProfileTimeout(true), 10_000)
+      return () => clearTimeout(t)
+    }
+  }, [loading, user, profile])
 
   if (loading) {
     return (
@@ -46,9 +61,8 @@ function ProtectedRoute({
     )
   }
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user || profileTimeout) return <Navigate to="/login" replace />
 
-  // Connecté mais profil pas encore chargé (première visite, pas de cache)
   if (!profile) {
     return (
       <div className="min-h-screen bg-fourmiliance-cream flex items-center justify-center">
@@ -92,9 +106,9 @@ function AppRoutes() {
       {/* Public */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* App — admin + sous_traitant */}
+      {/* App — admin + sous_traitant + commercial */}
       <Route path="/app" element={
-        <ProtectedRoute roles={['admin', 'sous_traitant']} element={<AppLayout />} />
+        <ProtectedRoute roles={['admin', 'sous_traitant', 'commercial']} element={<AppLayout />} />
       }>
         <Route path="dashboard"        element={<Suspense fallback={<PageLoader />}><DashboardPage /></Suspense>} />
         <Route path="crm"              element={<Suspense fallback={<PageLoader />}><CrmPage /></Suspense>} />
@@ -109,6 +123,12 @@ function AppRoutes() {
         <Route path="incubateur"       element={<Suspense fallback={<PageLoader />}><IncubateurPage /></Suspense>} />
         <Route path="portal"           element={<Suspense fallback={<PageLoader />}><PortalHubPage /></Suspense>} />
         <Route path="settings"         element={<Suspense fallback={<PageLoader />}><SettingsPage /></Suspense>} />
+        {/* Call center */}
+        <Route path="leads"       element={<Suspense fallback={<PageLoader />}><LeadsPage /></Suspense>} />
+        <Route path="appels"      element={<Suspense fallback={<PageLoader />}><CallSessionPage /></Suspense>} />
+        <Route path="supervision" element={<Suspense fallback={<PageLoader />}><SupervisionPage /></Suspense>} />
+        <Route path="campagnes"   element={<Suspense fallback={<PageLoader />}><CampaignsPage /></Suspense>} />
+        <Route path="produits"    element={<Suspense fallback={<PageLoader />}><ProductsPage /></Suspense>} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 

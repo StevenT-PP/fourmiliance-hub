@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Users, FolderKanban, TrendingUp, ExternalLink,
   Clock, Landmark, Building2, UserCog, Settings, Menu, Bell,
+  PhoneCall, Target, Eye, Package, Database,
 } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth.tsx'
 import { useNotifications } from '../hooks/useNotifications'
@@ -20,6 +21,16 @@ const adminNav: NavSection[] = [
       { label: 'Projets',          path: '/app/projects',   icon: FolderKanban },
       { label: 'Finances',         path: '/app/finance',    icon: TrendingUp },
       { label: 'Portail Client',   path: '/app/portal',     icon: ExternalLink },
+    ],
+  },
+  {
+    section: 'COMMERCIAL',
+    items: [
+      { label: 'Supervision',   path: '/app/supervision', icon: Eye },
+      { label: 'Leads',         path: '/app/leads',       icon: Database },
+      { label: 'Appels',        path: '/app/appels',      icon: PhoneCall },
+      { label: 'Campagnes',     path: '/app/campagnes',   icon: Target },
+      { label: 'Produits',      path: '/app/produits',    icon: Package },
     ],
   },
   {
@@ -45,7 +56,32 @@ const adminNav: NavSection[] = [
   },
 ]
 
+const commercialNav: NavSection[] = [
+  {
+    section: 'MES APPELS',
+    items: [
+      { label: 'Appels',    path: '/app/appels',    icon: PhoneCall },
+      { label: 'Leads',     path: '/app/leads',     icon: Database },
+      { label: 'Campagnes', path: '/app/campagnes', icon: Target },
+      { label: 'Produits',  path: '/app/produits',  icon: Package },
+    ],
+  },
+  {
+    section: 'COMPTE',
+    items: [
+      { label: 'Paramètres', path: '/app/settings', icon: Settings },
+    ],
+  },
+]
+
 const contractorNav: NavSection[] = [
+  {
+    section: 'MES APPELS',
+    items: [
+      { label: 'Appels',    path: '/app/appels',    icon: PhoneCall },
+      { label: 'Leads',     path: '/app/leads',     icon: Database },
+    ],
+  },
   {
     section: 'MON ESPACE',
     items: [
@@ -65,6 +101,7 @@ function roleLabel(role: string): string {
   const map: Record<string, string> = {
     admin: 'Administrateur',
     sous_traitant: 'Sous-traitant',
+    commercial: 'Commercial',
     client: 'Client',
     membre_association: 'Membre asso.',
     incube: 'Incubé',
@@ -105,20 +142,31 @@ export default function AppLayout() {
   const bellRef = useRef<HTMLButtonElement>(null)
   const { unreadCount } = useNotifications()
 
-  const nav = profile?.role === 'sous_traitant' ? contractorNav : adminNav
+  const nav = profile?.role === 'commercial'
+    ? commercialNav
+    : profile?.role === 'sous_traitant'
+      ? contractorNav
+      : adminNav
 
   const sidebar = (
     <aside className="w-[240px] flex-shrink-0 bg-fourmiliance-deep flex flex-col h-full">
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-fourmiliance-mid flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white" aria-hidden="true">
-            <path d="M12 3C9 3 6.5 5.5 6.5 8.5c0 2 .9 3.8 2.3 5L12 17l3.2-3.5c1.4-1.2 2.3-3 2.3-5C17.5 5.5 15 3 12 3zm0 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
-          </svg>
+      <div className="px-5 pt-6 pb-5 flex items-center gap-3">
+        <svg viewBox="0 0 30 24" className="w-8 h-6 flex-shrink-0" aria-hidden="true">
+          <circle cx="2.5" cy="19"  r="2"   fill="white" opacity="0.35"/>
+          <circle cx="8"   cy="13"  r="2.5" fill="white" opacity="0.52"/>
+          <circle cx="14.5" cy="8.5" r="3"  fill="white" opacity="0.7"/>
+          <circle cx="22"  cy="6"   r="3.5" fill="white" opacity="0.87"/>
+          <circle cx="29"  cy="8.5" r="2.7" fill="white" opacity="0.65"/>
+        </svg>
+        <div className="min-w-0">
+          <span className="font-brand italic text-white text-[1.1rem] tracking-wide leading-none block">
+            fourmiliance
+          </span>
+          <span className="text-white/35 text-[9px] tracking-[0.22em] uppercase font-sans leading-none mt-0.5 block">
+            hub
+          </span>
         </div>
-        <span className="font-heading text-white font-semibold text-sm leading-tight">
-          Fourmiliance<br />Hub
-        </span>
       </div>
 
       {/* Navigation */}

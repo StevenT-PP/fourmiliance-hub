@@ -7,6 +7,7 @@ async function resolveRoleRedirect(role: string, userId: string): Promise<string
   switch (role) {
     case 'admin':         return '/app/dashboard'
     case 'sous_traitant': return '/app/mes-taches'
+    case 'commercial':    return '/app/appels'
     case 'client': {
       const { data } = await supabase
         .from('projects').select('id').eq('client_id', userId).limit(1).single()
@@ -50,23 +51,9 @@ export default function LoginPage() {
     if (signInError) {
       setError(signInError)
       setSubmitting(false)
-      return
     }
-
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { setSubmitting(false); return }
-
-    const { data: profileData } = await supabase
-      .from('profiles').select('role, id').eq('id', session.user.id).single()
-
-    if (!profileData) {
-      setError('Profil introuvable. Contactez un administrateur.')
-      setSubmitting(false)
-      return
-    }
-
-    const path = await resolveRoleRedirect(profileData.role, profileData.id)
-    navigate(path, { replace: true })
+    // La redirection est gérée par le useEffect ci-dessus
+    // dès que user + profile sont chargés dans useAuth
   }
 
   async function handleMagicLink(e: FormEvent) {
@@ -103,16 +90,19 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-fourmiliance-mid mb-4">
-            <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white" aria-hidden="true">
-              <path d="M12 3C9 3 6.5 5.5 6.5 8.5c0 2 .9 3.8 2.3 5L12 17l3.2-3.5c1.4-1.2 2.3-3 2.3-5C17.5 5.5 15 3 12 3zm0 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
-              <path d="M12 19c-2 0-6 1-6 3v.5h12V22c0-2-4-3-6-3z" opacity=".5" />
-            </svg>
-          </div>
-          <h1 className="font-heading text-2xl font-semibold text-fourmiliance-forest">
-            Fourmiliance Hub
+          <svg viewBox="0 0 56 26" className="w-36 h-auto mx-auto mb-3" aria-hidden="true">
+            <circle cx="3"   cy="21"  r="2.2" fill="#2D5A1B" opacity="0.32"/>
+            <circle cx="10"  cy="14.5" r="2.8" fill="#2D5A1B" opacity="0.48"/>
+            <circle cx="18"  cy="9.5" r="3.3" fill="#2D5A1B" opacity="0.65"/>
+            <circle cx="27"  cy="6.5" r="3.8" fill="#2D5A1B" opacity="0.82"/>
+            <circle cx="36"  cy="5.5" r="3.8" fill="#2D5A1B"/>
+            <circle cx="45"  cy="8"   r="3.2" fill="#2D5A1B" opacity="0.68"/>
+            <circle cx="53"  cy="13.5" r="2.5" fill="#2D5A1B" opacity="0.42"/>
+          </svg>
+          <h1 className="font-brand italic text-3xl text-fourmiliance-forest tracking-wide leading-none">
+            fourmiliance
           </h1>
-          <p className="text-sm text-fourmiliance-ghost mt-1">Espace de gestion</p>
+          <p className="text-[10px] font-sans text-fourmiliance-ghost tracking-[0.25em] uppercase mt-1.5">hub</p>
         </div>
 
         {/* Toggle mode */}

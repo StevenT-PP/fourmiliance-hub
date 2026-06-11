@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { ActivityLog } from '../types'
 
@@ -10,7 +10,6 @@ function getLastSeen(): string {
 }
 
 export function useNotifications() {
-  const queryClient = useQueryClient()
   const [lastSeen, setLastSeen] = useState<string>(getLastSeen)
 
   const { data: notifications = [] } = useQuery({
@@ -25,23 +24,8 @@ export function useNotifications() {
       return (data ?? []) as ActivityLog[]
     },
     staleTime: 30_000,
+    refetchInterval: 60_000,
   })
-
-  // Realtime : re-fetch dès qu'un nouvel enregistrement est inséré
-  useEffect(() => {
-    const channel = supabase
-      .channel(`notifications-realtime-${Math.random()}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'activity_log' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] })
-        },
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [queryClient])
 
   const unreadCount = notifications.filter(
     n => n.created_at > lastSeen,

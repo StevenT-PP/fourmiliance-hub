@@ -30,7 +30,7 @@ export function useNotifications() {
   // Realtime : re-fetch dès qu'un nouvel enregistrement est inséré
   useEffect(() => {
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(`notifications-realtime-${Math.random()}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'activity_log' },
